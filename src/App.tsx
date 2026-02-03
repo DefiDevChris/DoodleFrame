@@ -533,7 +533,7 @@ const App: React.FC = () => {
         stroke: 'transparent',
         strokeWidth: 0,
         src: result.backgroundInpainted,
-        locked: false,
+        locked: true,
         isTemplate: false,
         isContainer: false,
         children: []
