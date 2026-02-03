@@ -46,83 +46,82 @@ const waitForOpenCV = (timeoutMs = 30000): Promise<void> => {
 };
 
 /**
- * Sample background color from multiple edge regions
+ * Fill a region with color sampled from its surroundings
+ * Uses a simple approach: sample from the border of the region
  */
-const sampleBackgroundColor = (ctx: CanvasRenderingContext2D, width: number, height: number): {r: number, g: number, b: number} => {
-  const samples: {r: number, g: number, b: number, count: number}[] = [];
-  const sampleSize = 30;
+const fillRegionWithSurroundingColor = (
+  ctx: CanvasRenderingContext2D, 
+  x: number, 
+  y: number, 
+  width: number, 
+  height: number,
+  imgWidth: number,
+  imgHeight: number
+) => {
+  const sampleWidth = Math.min(20, Math.floor(width * 0.2));
+  const sampleHeight = Math.min(20, Math.floor(height * 0.2));
   
-  // Sample edges and corners
-  const regions = [
-    { x: 0, y: 0, w: sampleSize, h: sampleSize }, // Top-left
-    { x: width - sampleSize, y: 0, w: sampleSize, h: sampleSize }, // Top-right
-    { x: 0, y: height - sampleSize, w: sampleSize, h: sampleSize }, // Bottom-left
-    { x: width - sampleSize, y: height - sampleSize, w: sampleSize, h: sampleSize }, // Bottom-right
-    { x: Math.floor(width/2 - sampleSize/2), y: 0, w: sampleSize, h: sampleSize }, // Top center
-    { x: Math.floor(width/2 - sampleSize/2), y: height - sampleSize, w: sampleSize, h: sampleSize }, // Bottom center
-    { x: 0, y: Math.floor(height/2 - sampleSize/2), w: sampleSize, h: sampleSize }, // Left center
-    { x: width - sampleSize, y: Math.floor(height/2 - sampleSize/2), w: sampleSize, h: sampleSize }, // Right center
-  ];
+  // Sample from multiple directions around the region
+  const samples: {r: number, g: number, b: number, a: number, count: number}[] = [];
   
-  for (const region of regions) {
-    try {
-      const imageData = ctx.getImageData(region.x, region.y, region.w, region.h);
-      let r = 0, g = 0, b = 0, count = 0;
-      
-      for (let i = 0; i < imageData.data.length; i += 4) {
-        r += imageData.data[i];
-        g += imageData.data[i + 1];
-        b += imageData.data[i + 2];
-        count++;
-      }
-      
-      if (count > 0) {
-        samples.push({
-          r: Math.round(r / count),
-          g: Math.round(g / count),
-          b: Math.round(b / count),
-          count
-        });
-      }
-    } catch (e) {
-      // Skip invalid regions
-    }
-  }
-  
-  if (samples.length === 0) {
-    return { r: 255, g: 255, b: 255 }; // Default white
-  }
-  
-  // Find the most common color range (mode clustering)
-  // Group similar colors together
-  const clusters: {r: number, g: number, b: number, totalCount: number}[] = [];
-  const threshold = 30; // Color similarity threshold
-  
-  for (const sample of samples) {
-    let added = false;
-    for (const cluster of clusters) {
-      const dist = Math.abs(sample.r - cluster.r) + Math.abs(sample.g - cluster.g) + Math.abs(sample.b - cluster.b);
-      if (dist < threshold * 3) {
-        cluster.r = (cluster.r * cluster.totalCount + sample.r * sample.count) / (cluster.totalCount + sample.count);
-        cluster.g = (cluster.g * cluster.totalCount + sample.g * sample.count) / (cluster.totalCount + sample.count);
-        cluster.b = (cluster.b * cluster.totalCount + sample.b * sample.count) / (cluster.totalCount + sample.count);
-        cluster.totalCount += sample.count;
-        added = true;
-        break;
+  const trySample = (sx: number, sy: number, sw: number, sh: number) => {
+    if (sx >= 0 && sy >= 0 && sx + sw <= imgWidth && sy + sh <= imgHeight) {
+      try {
+        const imageData = ctx.getImageData(sx, sy, sw, sh);
+        let r = 0, g = 0, b = 0, a = 0, count = 0;
+        
+        for (let i = 0; i < imageData.data.length; i += 4) {
+          r += imageData.data[i];
+          g += imageData.data[i + 1];
+          b += imageData.data[i + 2];
+          a += imageData.data[i + 3];
+          count++;
+        }
+        
+        if (count > 0) {
+          samples.push({
+            r: Math.round(r / count),
+            g: Math.round(g / count),
+            b: Math.round(b / count),
+            a: Math.round(a / count),
+            count
+          });
+        }
+      } catch (e) {
+        // Skip invalid regions
       }
     }
-    if (!added) {
-      clusters.push({ r: sample.r, g: sample.g, b: sample.b, totalCount: sample.count });
-    }
-  }
-  
-  // Return the largest cluster
-  const largest = clusters.reduce((max, c) => c.totalCount > max.totalCount ? c : max, clusters[0]);
-  return {
-    r: Math.round(largest.r),
-    g: Math.round(largest.g),
-    b: Math.round(largest.b)
   };
+  
+  // Sample from top
+  trySample(x, Math.max(0, y - sampleHeight), width, sampleHeight);
+  // Sample from bottom
+  trySample(x, Math.min(imgHeight - sampleHeight, y + height), width, sampleHeight);
+  // Sample from left
+  trySample(Math.max(0, x - sampleWidth), y, sampleWidth, height);
+  // Sample from right
+  trySample(Math.min(imgWidth - sampleWidth, x + width), y, sampleWidth, height);
+  
+  // Average all samples
+  if (samples.length > 0) {
+    let totalR = 0, totalG = 0, totalB = 0, totalA = 0, totalCount = 0;
+    for (const s of samples) {
+      totalR += s.r * s.count;
+      totalG += s.g * s.count;
+      totalB += s.b * s.count;
+      totalA += s.a * s.count;
+      totalCount += s.count;
+    }
+    
+    const avgR = Math.round(totalR / totalCount);
+    const avgG = Math.round(totalG / totalCount);
+    const avgB = Math.round(totalB / totalCount);
+    const avgA = Math.round(totalA / totalCount);
+    
+    // Fill the region with the averaged color
+    ctx.fillStyle = `rgba(${avgR},${avgG},${avgB},${avgA / 255})`;
+    ctx.fillRect(x, y, width, height);
+  }
 };
 
 /**
@@ -232,25 +231,28 @@ export const detectUIObjects = async (
           }
         }
         
-        // Step 7: Create background with smart filling
+        // Step 7: Create background by ONLY inpainting detected object regions
+        // Start with a copy of the original image
         const bgCanvas = document.createElement('canvas');
         bgCanvas.width = img.width;
         bgCanvas.height = img.height;
         const bgCtx = bgCanvas.getContext('2d')!;
         
-        // Get dominant background color
-        const bgColor = sampleBackgroundColor(ctx, img.width, img.height);
+        // Copy original image as base
+        bgCtx.drawImage(img, 0, 0);
         
-        // Fill entire canvas with background color
-        bgCtx.fillStyle = `rgb(${bgColor.r},${bgColor.g},${bgColor.b})`;
-        bgCtx.fillRect(0, 0, img.width, img.height);
-        
-        // For larger regions, try to preserve some texture by copying from nearby
-        // but only for areas that aren't where objects were detected
+        // Only fill the detected object regions with surrounding color
+        // This preserves gradients and background details everywhere else
         detectedObjects.forEach(obj => {
-          // Just fill with solid color for now - could be enhanced with texture synthesis
-          bgCtx.fillStyle = `rgb(${bgColor.r},${bgColor.g},${bgColor.b})`;
-          bgCtx.fillRect(obj.x, obj.y, obj.width, obj.height);
+          fillRegionWithSurroundingColor(
+            bgCtx, 
+            obj.x, 
+            obj.y, 
+            obj.width, 
+            obj.height,
+            img.width,
+            img.height
+          );
         });
         
         const backgroundInpainted = bgCanvas.toDataURL('image/png');
