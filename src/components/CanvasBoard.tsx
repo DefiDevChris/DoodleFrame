@@ -873,38 +873,9 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
 
             const shapesToAdd: ShapeObject[] = [newShape];
 
-            if (cutMode === 'cut') {
-                // Create mask rectangles with the actual canvas background color instead of white
-                // This ensures seamless blending with the background
-                const bgHole: RectShape = {
-                    id: generateId(),
-                    tool: 'rect',
-                    x: currentSelectionRect.x,
-                    y: currentSelectionRect.y,
-                    width: currentSelectionRect.width,
-                    height: currentSelectionRect.height,
-                    rotation: 0,
-                    stroke: 'transparent',
-                    strokeWidth: 0,
-                    fill: '#f9fafb', // bg-gray-50 to match canvas background
-                    layer: 'background'
-                };
-                const drawingHole: RectShape = {
-                     id: generateId(),
-                     tool: 'rect',
-                     x: currentSelectionRect.x,
-                     y: currentSelectionRect.y,
-                     width: currentSelectionRect.width,
-                     height: currentSelectionRect.height,
-                     rotation: 0,
-                     stroke: 'transparent',
-                     strokeWidth: 0,
-                     fill: '#f9fafb', // bg-gray-50 to match canvas background
-                     layer: 'drawing'
-                };
-                shapesToAdd.push(bgHole);
-                shapesToAdd.push(drawingHole);
-            }
+            // When in 'cut' mode, we don't add hole rectangles - we leave a void/gap
+            // The cutout image captures the content, and the area behind becomes empty
+            // showing the canvas background. This creates a true "cut out" effect.
 
             const updatedShapes = [...shapes, ...shapesToAdd];
             setShapes(updatedShapes);
