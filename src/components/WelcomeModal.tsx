@@ -74,7 +74,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
               <div className="w-2 h-2 bg-indigo-600 rounded-full mt-2 flex-shrink-0" />
               <div>
                 <p className="font-semibold text-gray-900">Object Detection</p>
-                <p className="text-sm text-gray-600">AI-powered screenshot parsing</p>
+                <p className="text-sm text-gray-600">OpenCV screenshot parsing</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
