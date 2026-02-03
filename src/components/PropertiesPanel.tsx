@@ -30,6 +30,8 @@ interface PropertiesPanelProps {
   // Detection-related props
   detectionSensitivity?: number;
   setDetectionSensitivity?: (sensitivity: number) => void;
+  backgroundBlurRadius?: number;
+  setBackgroundBlurRadius?: (radius: number) => void;
   canDetectObjects?: boolean;
 }
 
@@ -54,6 +56,8 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   onUngroup,
   detectionSensitivity = 65,
   setDetectionSensitivity,
+  backgroundBlurRadius = 0,
+  setBackgroundBlurRadius,
   canDetectObjects = false
 }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -383,6 +387,37 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                       <span>Less</span>
                       <span>More</span>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Background Blur Setting */}
+              {canDetectObjects && setBackgroundBlurRadius && (
+                <div className="space-y-2 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Background Blur</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <span>Blur</span>
+                      <span className="font-medium">{backgroundBlurRadius}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="20"
+                      step="1"
+                      value={backgroundBlurRadius}
+                      onChange={(e) => setBackgroundBlurRadius(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                    />
+                    <div className="flex justify-between text-[10px] text-gray-400">
+                      <span>None</span>
+                      <span>Max</span>
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      Blurs areas where objects were removed
+                    </p>
                   </div>
                 </div>
               )}

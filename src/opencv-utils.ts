@@ -130,10 +130,12 @@ const fillRegionWithSurroundingColor = (
  * UI object detection using basic OpenCV.js functions
  * @param imageSrc - Image source URL
  * @param sensitivity - Detection sensitivity (0-100, default 50)
+ * @param backgroundBlurRadius - Blur radius for inpainted background areas (0-20, default 0)
  */
 export const detectUIObjects = async (
   imageSrc: string,
-  sensitivity: number = 50
+  sensitivity: number = 50,
+  backgroundBlurRadius: number = 0
 ): Promise<DetectionResult> => {
   try {
     await waitForOpenCV(10000);
@@ -268,6 +270,26 @@ export const detectUIObjects = async (
             img.height
           );
         });
+        
+        // Apply blur to the filled regions if blur radius > 0
+        if (backgroundBlurRadius > 0) {
+          detectedObjects.forEach(obj => {
+            // Extract the filled region
+            const imageData = bgCtx.getImageData(obj.x, obj.y, obj.width, obj.height);
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = obj.width;
+            tempCanvas.height = obj.height;
+            const tempCtx = tempCanvas.getContext('2d')!;
+            tempCtx.putImageData(imageData, 0, 0);
+            
+            // Apply blur using CSS filter on a temporary canvas
+            tempCtx.filter = `blur(${backgroundBlurRadius}px)`;
+            tempCtx.drawImage(tempCanvas, 0, 0);
+            
+            // Put the blurred image back
+            bgCtx.drawImage(tempCanvas, obj.x, obj.y);
+          });
+        }
         
         const backgroundInpainted = bgCanvas.toDataURL('image/png');
         

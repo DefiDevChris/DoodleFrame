@@ -57,6 +57,7 @@ const App: React.FC = () => {
 
   // Detection State
   const [detectionSensitivity, setDetectionSensitivity] = useState<number>(65);
+  const [backgroundBlurRadius, setBackgroundBlurRadius] = useState<number>(0);
   const [showDetectionModal, setShowDetectionModal] = useState<boolean>(false);
   const [detectedObjectCount, setDetectedObjectCount] = useState<number>(0);
 
@@ -514,7 +515,7 @@ const App: React.FC = () => {
 
     try {
       const src = (imageShape as ImageShape).src;
-      const result = await detectUIObjects(src, detectionSensitivity);
+      const result = await detectUIObjects(src, detectionSensitivity, backgroundBlurRadius);
 
       if (result.objects.length === 0) {
         alert('No objects detected. Try adjusting the sensitivity slider or importing a screenshot with clearer UI elements.');
@@ -1082,6 +1083,8 @@ const App: React.FC = () => {
         onUngroup={handleUngroup}
         detectionSensitivity={detectionSensitivity}
         setDetectionSensitivity={setDetectionSensitivity}
+        backgroundBlurRadius={backgroundBlurRadius}
+        setBackgroundBlurRadius={setBackgroundBlurRadius}
         canDetectObjects={opencvReady && shapes.some(s => s.tool === 'image' && !(s as ImageShape).isTemplate)}
       />
 
