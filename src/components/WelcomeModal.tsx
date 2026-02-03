@@ -141,22 +141,38 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex flex-col items-center text-center p-3 rounded-lg bg-white/60 border border-purple-100/50 backdrop-blur-sm">
-                <div className="w-2 h-2 bg-purple-600 rounded-full mb-2" />
+                <img 
+                  src="/icons/drawing-tools.png" 
+                  alt="Drawing Tools" 
+                  className="w-12 h-12 mb-2 object-contain"
+                />
                 <p className="font-semibold text-gray-900 text-sm">Drawing Tools</p>
                 <p className="text-xs text-gray-600">Pen, shapes, arrows</p>
               </div>
               <div className="flex flex-col items-center text-center p-3 rounded-lg bg-white/60 border border-violet-100/50 backdrop-blur-sm">
-                <div className="w-2 h-2 bg-violet-600 rounded-full mb-2" />
+                <img 
+                  src="/icons/templates.png" 
+                  alt="Templates" 
+                  className="w-12 h-12 mb-2 object-contain"
+                />
                 <p className="font-semibold text-gray-900 text-sm">Templates</p>
                 <p className="text-xs text-gray-600">Device frames</p>
               </div>
               <div className="flex flex-col items-center text-center p-3 rounded-lg bg-white/60 border border-indigo-100/50 backdrop-blur-sm">
-                <div className="w-2 h-2 bg-indigo-600 rounded-full mb-2" />
+                <img 
+                  src="/icons/detection.png" 
+                  alt="Detection" 
+                  className="w-12 h-12 mb-2 object-contain"
+                />
                 <p className="font-semibold text-gray-900 text-sm">Detection</p>
                 <p className="text-xs text-gray-600">OpenCV parsing</p>
               </div>
               <div className="flex flex-col items-center text-center p-3 rounded-lg bg-white/60 border border-purple-100/50 backdrop-blur-sm">
-                <div className="w-2 h-2 bg-purple-600 rounded-full mb-2" />
+                <img 
+                  src="/icons/export.png" 
+                  alt="Export" 
+                  className="w-12 h-12 mb-2 object-contain"
+                />
                 <p className="font-semibold text-gray-900 text-sm">Export</p>
                 <p className="text-xs text-gray-600">PNG & projects</p>
               </div>
