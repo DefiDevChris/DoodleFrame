@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=DoodleFrame
+Comment=Draw, sketch, and create wireframes
+Exec=doodleframe
+Type=Application
+Icon=com.doodleframe.DoodleFrame
+Categories=Graphics;Office;RasterGraphics;2DGraphics;
+StartupWMClass=DoodleFrame
+Terminal=false
+MimeType=image/png;image/jpeg;image/gif;image/webp;image/bmp;
+StartupNotify=true
+Keywords=draw;sketch;wireframe;mockup;diagram;annotation;image;canvas;
+X-GNOME-UsesNotifications=true
+X-Purism-FormFactor=Workstation;

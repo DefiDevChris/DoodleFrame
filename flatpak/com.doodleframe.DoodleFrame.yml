@@ -1,0 +1,94 @@
+app-id: com.doodleframe.DoodleFrame
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: "24.08"
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.node22
+command: doodleframe
+separate-locales: false
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=pulseaudio
+  - --device=dri
+  - --filesystem=home
+  - --filesystem=/tmp
+  # For GTK theme integration
+  - --filesystem=xdg-config/gtk-3.0:ro
+  - --filesystem=xdg-config/gtk-4.0:ro
+  # For cursor theme and icon theme
+  - --filesystem=xdg-data/icons:ro
+  - --filesystem=xdg-data/themes:ro
+  # Settings for theme detection
+  - --filesystem=xdg-config/gtkrc:ro
+  - --filesystem=xdg-config/gtkrc-2.0:ro
+  - --filesystem=xdg-config/gtkrc-2.0-kde4:ro
+  # For native notifications
+  - --talk-name=org.freedesktop.Notifications
+  # For portal support
+  - --talk-name=org.freedesktop.portal.*
+  - --talk-name=org.freedesktop.Flatpak
+
+build-options:
+  append-path: /usr/lib/sdk/node22/bin
+  env:
+    XDG_CACHE_HOME: /run/build/doodleframe/flatpak-node/cache
+    npm_config_cache: /run/build/doodleframe/flatpak-node/npm-cache
+    npm_config_nodedir: /usr/lib/sdk/node22
+    npm_config_offline: "true"
+
+modules:
+  - name: doodleframe
+    buildsystem: simple
+    build-options:
+      env:
+        CHROMEDRIVER_SKIP_DOWNLOAD: "true"
+        ELECTRON_SKIP_BINARY_DOWNLOAD: "true"
+    build-commands:
+      # Build the application
+      - npm install --offline --cache=/run/build/doodleframe/flatpak-node/npm-cache
+      - npm run build
+      
+      # Package with electron-builder
+      - |
+        . flatpak-node/electron-builder-arch-args.sh
+        npm run flatpak:build -- $ELECTRON_BUILDER_ARCH_ARGS --linux --dir
+      
+      # Install application files
+      - cp -a dist/linux*unpacked /app/doodleframe
+      - install -Dm755 doodleframe-wrapper.sh /app/bin/doodleframe
+      
+      # Install desktop file
+      - install -Dm644 flatpak/com.doodleframe.DoodleFrame.desktop /app/share/applications/com.doodleframe.DoodleFrame.desktop
+      
+      # Install AppStream metadata
+      - install -Dm644 flatpak/com.doodleframe.DoodleFrame.metainfo.xml /app/share/metainfo/com.doodleframe.DoodleFrame.metainfo.xml
+      
+      # Install icons
+      - install -Dm644 build/icon.png /app/share/icons/hicolor/512x512/apps/com.doodleframe.DoodleFrame.png
+      - |
+        if [ -f build/icon-symbolic.svg ]; then
+          install -Dm644 build/icon-symbolic.svg /app/share/icons/hicolor/symbolic/apps/com.doodleframe.DoodleFrame-symbolic.svg
+        fi
+    
+    sources:
+      # Main source
+      - type: dir
+        path: ..
+      
+      # Generated npm sources
+      - generated-sources.json
+      
+      # Wrapper script
+      - type: file
+        path: doodleframe-wrapper.sh
+      
+      # Desktop file
+      - type: file
+        path: com.doodleframe.DoodleFrame.desktop
+      
+      # Metainfo
+      - type: file
+        path: com.doodleframe.DoodleFrame.metainfo.xml

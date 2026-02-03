@@ -1,0 +1,142 @@
+{
+  "name": "doodleframe",
+  "productName": "DoodleFrame",
+  "version": "1.0.0",
+  "description": "A simple drawing and wireframing tool for Linux. Draw, annotate images, create UI mockups with templates, and export your work.",
+  "homepage": "https://github.com/DefiDevChris/DoodleFrame#readme",
+  "bugs": {
+    "url": "https://github.com/DefiDevChris/DoodleFrame/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DefiDevChris/DoodleFrame.git"
+  },
+  "author": {
+    "name": "DoodleFrame Contributors"
+  },
+  "keywords": [
+    "linux",
+    "annotation",
+    "drawing",
+    "sketch",
+    "wireframe",
+    "image-editor",
+    "simple",
+    "electron",
+    "react",
+    "flatpak"
+  ],
+  "license": "MIT",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron": "electron .",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron . --dev\"",
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:linux": "npm run build && electron-builder --linux",
+    "electron:build:rpm": "npm run build && electron-builder --linux rpm",
+    "electron:build:appimage": "npm run build && electron-builder --linux AppImage",
+    "dist": "npm run build && electron-builder",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "konva": "^10.0.0",
+    "lucide-react": "^0.507.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-konva": "^19.0.0",
+    "tailwind-merge": "^3.2.0",
+    "use-image": "^1.1.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^25.2.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.1.2",
+    "electron": "^35.2.0",
+    "electron-builder": "^26.0.12",
+    "jsdom": "^26.1.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.0",
+    "vitest": "^3.1.0",
+    "wait-on": "^8.0.3"
+  },
+  "build": {
+    "appId": "com.doodleframe.app",
+    "productName": "DoodleFrame",
+    "copyright": "Copyright © 2025 DoodleFrame Contributors",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "assets/**/*"
+    ],
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Graphics",
+      "icon": "assets/icons",
+      "maintainer": "DoodleFrame Contributors",
+      "vendor": "DoodleFrame",
+      "synopsis": "A simple drawing and wireframing tool",
+      "description": "A simple drawing and wireframing tool for Linux. Draw, annotate images, create UI mockups with templates, and export your work.",
+      "desktop": {
+        "Name": "DoodleFrame",
+        "Comment": "A simple drawing and wireframing tool",
+        "Categories": "Graphics;Office;",
+        "StartupWMClass": "DoodleFrame"
+      }
+    },
+    "rpm": {
+      "depends": [
+        "gtk3",
+        "libnotify",
+        "nss",
+        "libXScrnSaver",
+        "libXtst",
+        "xdg-utils",
+        "at-spi2-core",
+        "libdrm",
+        "mesa-libgbm",
+        "libxcb",
+        "alsa-lib"
+      ]
+    }
+  }
+}

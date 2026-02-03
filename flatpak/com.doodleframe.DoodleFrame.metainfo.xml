@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.doodleframe.DoodleFrame</id>
+  
+  <name>DoodleFrame</name>
+  <summary>Draw, sketch, and create wireframes</summary>
+  
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  
+  <description>
+    <p>
+      DoodleFrame is a simple yet powerful drawing and wireframing tool designed 
+      for Linux desktop environments. Create mockups, annotate screenshots, sketch 
+      diagrams, or let your creativity flow with a full set of drawing tools.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>Multiple drawing tools: pen, marker, arrows, shapes, and text</li>
+      <li>Wireframing templates: phone, browser, and tablet mockups</li>
+      <li>Grid and snap-to-grid for precise alignment</li>
+      <li>Multi-select and transform multiple objects</li>
+      <li>Zoom and pan for detailed work</li>
+      <li>Export your creations as PNG images</li>
+      <li>Native GTK theme integration</li>
+    </ul>
+  </description>
+  
+  <launchable type="desktop-id">com.doodleframe.DoodleFrame.desktop</launchable>
+  
+  <developer id="com.doodleframe">
+    <name>DefiDevChris</name>
+  </developer>
+  
+  <update_contact>chris@doodleframe.app</update_contact>
+  
+  <url type="homepage">https://github.com/DefiDevChris/DoodleFrame</url>
+  <url type="bugtracker">https://github.com/DefiDevChris/DoodleFrame/issues</url>
+  <url type="vcs-browser">https://github.com/DefiDevChris/DoodleFrame</url>
+  
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/DefiDevChris/DoodleFrame/raw/main/screenshots/main.png</image>
+      <caption>Main drawing interface with tools</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/DefiDevChris/DoodleFrame/raw/main/screenshots/wireframe.png</image>
+      <caption>Wireframing with device templates</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/DefiDevChris/DoodleFrame/raw/main/screenshots/annotation.png</image>
+      <caption>Image annotation capabilities</caption>
+    </screenshot>
+  </screenshots>
+  
+  <releases>
+    <release version="1.0.0" date="2025-02-02">
+      <description>
+        <p>Initial release with full drawing and wireframing capabilities.</p>
+      </description>
+    </release>
+  </releases>
+  
+  <content_rating type="oars-1.1" />
+  
+  <branding>
+    <color type="primary" scheme_preference="light">#8B5CF6</color>
+    <color type="primary" scheme_preference="dark">#A78BFA</color>
+  </branding>
+  
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+  
+  <recommends>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <display_length compare="ge">1080</display_length>
+  </recommends>
+  
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+    <internet>offline-only</internet>
+  </supports>
+  
+  <categories>
+    <category>Graphics</category>
+    <category>Office</category>
+    <category>2DGraphics</category>
+    <category>RasterGraphics</category>
+  </categories>
+  
+  <keywords>
+    <keyword>draw</keyword>
+    <keyword>sketch</keyword>
+    <keyword>wireframe</keyword>
+    <keyword>mockup</keyword>
+    <keyword>diagram</keyword>
+    <keyword>annotation</keyword>
+    <keyword>canvas</keyword>
+    <keyword>paint</keyword>
+    <keyword>design</keyword>
+  </keywords>
+</component>

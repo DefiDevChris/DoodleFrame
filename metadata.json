@@ -1,0 +1,8 @@
+{
+  "name": "DoodleFrame",
+  "description": "A simple drawing and wireframing tool for Linux. Draw, sketch, annotate images, create UI mockups with templates, and export your work.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "platforms": ["linux"],
+  "categories": ["Graphics", "Office"]
+}
