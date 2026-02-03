@@ -11,7 +11,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl max-w-4xl w-full border border-gray-200">
+      <div className="relative bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-gray-200">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -42,7 +42,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
         </div>
 
         {/* Content */}
-        <div className="px-6 py-5">
+        <div className="px-6 py-5 overflow-y-auto">
           {/* About */}
           <div className="mb-4">
             <h2 className="text-lg font-bold text-gray-900 mb-2">What is DoodleFrame?</h2>
