@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import Konva from 'konva';
 import { Toolbar } from './components/Toolbar';
 import { PropertiesPanel } from './components/PropertiesPanel';
+import { GlobalToolsBar } from './components/GlobalToolsBar';
 import { CanvasBoard } from './components/CanvasBoard';
 import { ShapeLibrary } from './components/ShapeLibrary';
 import { LibraryItem } from './shapeLibrary';
@@ -1049,6 +1050,17 @@ const App: React.FC = () => {
         />
       )}
 
+      <GlobalToolsBar
+        autoSwitchToSelect={autoSwitchToSelect}
+        setAutoSwitchToSelect={setAutoSwitchToSelect}
+        showGrid={showGrid}
+        setShowGrid={setShowGrid}
+        snapToGrid={snapToGrid}
+        setSnapToGrid={setSnapToGrid}
+        gridSize={gridSize}
+        setGridSize={setGridSize}
+      />
+
       <PropertiesPanel
         color={color}
         setColor={setColor}
@@ -1062,12 +1074,6 @@ const App: React.FC = () => {
         hasSelection={selectedIds.length > 0}
         cutMode={cutMode}
         setCutMode={setCutMode}
-        showGrid={showGrid}
-        setShowGrid={setShowGrid}
-        snapToGrid={snapToGrid}
-        setSnapToGrid={setSnapToGrid}
-        gridSize={gridSize}
-        setGridSize={setGridSize}
         selectedShape={selectedShape}
         parentName={selectedParentName}
         canGroup={canGroup}
@@ -1077,8 +1083,6 @@ const App: React.FC = () => {
         detectionSensitivity={detectionSensitivity}
         setDetectionSensitivity={setDetectionSensitivity}
         canDetectObjects={opencvReady && shapes.some(s => s.tool === 'image' && !(s as ImageShape).isTemplate)}
-        autoSwitchToSelect={autoSwitchToSelect}
-        setAutoSwitchToSelect={setAutoSwitchToSelect}
       />
 
       <div className="flex-1 relative cursor-crosshair">

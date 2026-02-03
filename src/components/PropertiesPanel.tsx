@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { COLORS, STROKE_WIDTHS } from '../constants';
 import { cn } from '../utils';
 import { 
-  Lock, Unlock, Scissors, Copy, Grid3X3, Magnet, Group, Ungroup, 
-  FolderOpen, Scan, ChevronRight, ChevronLeft, MousePointer2 
+  Lock, Unlock, Scissors, Copy, Group, Ungroup, 
+  FolderOpen, Scan
 } from 'lucide-react';
 import { ShapeObject } from '../types';
 
@@ -20,12 +20,6 @@ interface PropertiesPanelProps {
   hasSelection: boolean;
   cutMode: 'copy' | 'cut';
   setCutMode: (mode: 'copy' | 'cut') => void;
-  showGrid: boolean;
-  setShowGrid: (show: boolean) => void;
-  snapToGrid: boolean;
-  setSnapToGrid: (snap: boolean) => void;
-  gridSize: number;
-  setGridSize: (size: number) => void;
   // Grouping-related props
   selectedShape?: ShapeObject | null;
   parentName?: string | null;
@@ -37,9 +31,6 @@ interface PropertiesPanelProps {
   detectionSensitivity?: number;
   setDetectionSensitivity?: (sensitivity: number) => void;
   canDetectObjects?: boolean;
-  // Auto tool switch toggle
-  autoSwitchToSelect: boolean;
-  setAutoSwitchToSelect: (enabled: boolean) => void;
 }
 
 export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
@@ -55,12 +46,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   hasSelection,
   cutMode,
   setCutMode,
-  showGrid,
-  setShowGrid,
-  snapToGrid,
-  setSnapToGrid,
-  gridSize,
-  setGridSize,
   selectedShape,
   parentName,
   canGroup = false,
@@ -69,70 +54,26 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   onUngroup,
   detectionSensitivity = 65,
   setDetectionSensitivity,
-  canDetectObjects = false,
-  autoSwitchToSelect,
-  setAutoSwitchToSelect
+  canDetectObjects = false
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
-  
   // Show cut controls
   const showCutControls = tool === 'cut';
   
   // Determine if we should show the panel content
   const shouldShowContent = showCutControls || hasSelection || (tool !== 'select' && tool !== 'pan');
 
-  return (
-    <div className={cn(
-      "fixed top-1/2 -translate-y-1/2 z-40 flex items-start transition-all duration-300",
-      isExpanded ? "left-[80px]" : "left-[72px]"
-    )}>
-      {/* Toggle Button */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className={cn(
-          "flex items-center justify-center w-6 h-12 bg-white border border-gray-200 shadow-md rounded-r-lg -ml-1 hover:bg-gray-50 transition-colors",
-          isExpanded ? "rounded-l-none" : "rounded-l-lg"
-        )}
-        title={isExpanded ? "Collapse properties" : "Expand properties"}
-      >
-        {isExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-      </button>
+  if (!shouldShowContent) return null;
 
-      {/* Panel Content */}
-      <div className={cn(
-        "bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col transition-all duration-300 overflow-hidden",
-        isExpanded ? "w-64 max-h-[80vh] opacity-100" : "w-0 opacity-0 overflow-hidden"
-      )}>
+  return (
+    <div className="fixed top-1/2 -translate-y-1/2 left-[72px] z-40">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 w-56 max-h-[80vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-800 text-sm">Properties</h3>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 sticky top-0 bg-white">
+          <h3 className="font-semibold text-gray-800 text-sm">Tool Options</h3>
           <span className="text-xs text-gray-400 capitalize">{tool}</span>
         </div>
 
-        <div className="overflow-y-auto p-4 space-y-4">
-          {/* Auto Switch to Select Toggle */}
-          <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <MousePointer2 size={16} className="text-indigo-600" />
-              <span className="text-sm font-medium text-gray-700">Auto-select</span>
-            </div>
-            <button
-              onClick={() => setAutoSwitchToSelect(!autoSwitchToSelect)}
-              className={cn(
-                "relative w-10 h-5 rounded-full transition-colors",
-                autoSwitchToSelect ? "bg-indigo-600" : "bg-gray-300"
-              )}
-            >
-              <span className={cn(
-                "absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm",
-                autoSwitchToSelect ? "left-5" : "left-0.5"
-              )} />
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 -mt-2 ml-1">
-            {autoSwitchToSelect ? "Switch to select tool after drawing" : "Stay on current tool after drawing"}
-          </p>
-
+        <div className="p-4 space-y-4">
           {/* Cut Tool Mode Toggle */}
           {showCutControls && (
             <div className="space-y-2">
@@ -307,51 +248,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               )}
             </>
           )}
-
-          {/* Grid Controls */}
-          <div className="space-y-2 pt-2 border-t border-gray-100">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Grid</span>
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowGrid(!showGrid)}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                    showGrid 
-                      ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" 
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  )}
-                >
-                  <Grid3X3 size={14} />
-                  {showGrid ? "On" : "Off"}
-                </button>
-                <button
-                  onClick={() => setSnapToGrid(!snapToGrid)}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                    snapToGrid 
-                      ? "bg-green-50 text-green-600 hover:bg-green-100" 
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  )}
-                >
-                  <Magnet size={14} />
-                  {snapToGrid ? "Snap" : "Free"}
-                </button>
-              </div>
-              {showGrid && (
-                <select
-                  value={gridSize}
-                  onChange={(e) => setGridSize(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value={10}>10px grid</option>
-                  <option value={20}>20px grid</option>
-                  <option value={50}>50px grid</option>
-                  <option value={100}>100px grid</option>
-                </select>
-              )}
-            </div>
-          </div>
 
           {/* Object Detection Sensitivity */}
           {canDetectObjects && setDetectionSensitivity && (
