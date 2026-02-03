@@ -36,7 +36,7 @@ interface CanvasBoardProps {
   fillColor: string;
   strokeWidth: number;
   image: HTMLImageElement | null;
-  stageRef: React.RefObject<Konva.Stage>;
+  stageRef: React.RefObject<Konva.Stage | null>;
   shapes: ShapeObject[];
   setShapes: React.Dispatch<React.SetStateAction<ShapeObject[]>>;
   addToHistory: (newShapes: ShapeObject[]) => void;
@@ -113,6 +113,8 @@ const ShapeComponent = ({
   isSelected,
   isEditing,
   onClick,
+  onDragStart,
+  onDragMove,
   onDragEnd,
   onTransformEnd,
   onDblClick
@@ -122,6 +124,8 @@ const ShapeComponent = ({
   isSelected: boolean;
   isEditing: boolean;
   onClick: (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => void;
+  onDragStart: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => void;
   onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => void;
   onTransformEnd: (e: Konva.KonvaEventObject<Event>) => void;
   onDblClick?: (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => void;
@@ -131,6 +135,8 @@ const ShapeComponent = ({
     draggable: tool === 'select' && !shape.locked,
     onClick,
     onTap: onClick as any,
+    onDragStart,
+    onDragMove,
     onDragEnd,
     onTransformEnd,
     rotation: shape.rotation,
@@ -252,6 +258,8 @@ const ContainerComponent = ({
   selectedIds,
   editingTextId,
   onShapeClick,
+  onShapeDragStart,
+  onShapeDragMove,
   onShapeDragEnd,
   onShapeTransformEnd,
   onShapeDblClick,
@@ -264,11 +272,13 @@ const ContainerComponent = ({
   selectedIds: string[];
   editingTextId: string | null;
   onShapeClick: (id: string, e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => void;
+  onShapeDragStart: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onShapeDragMove: (e: Konva.KonvaEventObject<DragEvent>) => void;
   onShapeDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => void;
   onShapeTransformEnd: (e: Konva.KonvaEventObject<Event>) => void;
   onShapeDblClick: (id: string, e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => void;
   onGroupDragEnd: (e: Konva.KonvaEventObject<DragEvent>, groupId: string) => void;
-  stageRef: React.RefObject<Konva.Stage>;
+  stageRef: React.RefObject<Konva.Stage | null>;
 }) => {
   const isSelected = selectedIds.includes(shape.id);
   const isGroup = shape.tool === 'group';
@@ -326,6 +336,8 @@ const ContainerComponent = ({
             e.cancelBubble = true; // Don't propagate to parent group
             onShapeClick(child.id, e);
           }}
+          onDragStart={onShapeDragStart}
+          onDragMove={onShapeDragMove}
           onDragEnd={onShapeDragEnd}
           onTransformEnd={onShapeTransformEnd}
           onDblClick={(e) => onShapeDblClick(child.id, e)}
@@ -446,7 +458,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
              const calculateBounds = () => {
                 let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
                 nodes.forEach(node => {
-                    const rect = node.getClientRect({ relativeTo: node.getLayer() });
+                    const layer = node.getLayer();
+                    const rect = node.getClientRect({ relativeTo: layer || undefined });
                     minX = Math.min(minX, rect.x);
                     minY = Math.min(minY, rect.y);
                     maxX = Math.max(maxX, rect.x + rect.width);
@@ -1011,6 +1024,25 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
       addToHistory(shapesWithUpdatedArrows);
   };
 
+  // Handle drag start for individual shapes
+  const handleShapeDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
+      const id = e.target.id();
+      const node = e.target;
+      
+      // Store initial position for drag move reference
+      dragStartPositions.current[id] = { x: node.x(), y: node.y() };
+  };
+
+  // Handle drag move for individual shapes - update connected smart arrows during drag
+  const handleShapeDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
+      const id = e.target.id();
+      
+      // Update connected smart arrows during the drag for real-time feedback
+      if (updateSmartArrows) {
+          updateSmartArrows(id);
+      }
+  };
+
   // Handle drag end for groups - update both group and children's stored positions
   const handleGroupDragEnd = (e: Konva.KonvaEventObject<DragEvent>, groupId: string) => {
       const group = shapes.find(s => s.id === groupId);
@@ -1205,6 +1237,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
           selectedIds={selectedIds}
           editingTextId={editingTextId}
           onShapeClick={handleShapeClick}
+          onShapeDragStart={handleShapeDragStart}
+          onShapeDragMove={handleShapeDragMove}
           onShapeDragEnd={handleShapeDragEnd}
           onShapeTransformEnd={handleTransformEnd}
           onShapeDblClick={handleShapeDblClick}
@@ -1223,6 +1257,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         isSelected={isSelected}
         isEditing={editingTextId === shape.id}
         onClick={(e) => handleShapeClick(shape.id, e)}
+        onDragStart={handleShapeDragStart}
+        onDragMove={handleShapeDragMove}
         onDragEnd={handleShapeDragEnd}
         onTransformEnd={handleTransformEnd}
         onDblClick={(e) => handleShapeDblClick(shape.id, e)}
