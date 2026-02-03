@@ -9,6 +9,8 @@ export interface DetectedObject {
   y: number;
   width: number;
   height: number;
+  // Optional contour points for transparency masking
+  contourPoints?: { x: number; y: number }[];
 }
 
 export interface DetectionResult {
@@ -201,7 +203,7 @@ export const detectUIObjects = async (
         mats.push(hierarchy);
         cv.findContours(dilated, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-        // Step 6: Extract bounding boxes
+        // Step 6: Extract bounding boxes and contour points
         const detectedObjects: DetectedObject[] = [];
         const imgArea = img.width * img.height;
 
@@ -221,11 +223,23 @@ export const detectUIObjects = async (
             const aspectRatio = rect.width / rect.height;
             if (aspectRatio > 0.01 && aspectRatio < 100 &&
                 rect.width > minSize && rect.height > minSize) {
+              
+              // Extract contour points for transparency masking
+              const contourPoints: { x: number; y: number }[] = [];
+              const data = contour.data32S;
+              for (let j = 0; j < data.length; j += 2) {
+                contourPoints.push({
+                  x: data[j],
+                  y: data[j + 1]
+                });
+              }
+              
               detectedObjects.push({
                 x: rect.x,
                 y: rect.y,
                 width: rect.width,
-                height: rect.height
+                height: rect.height,
+                contourPoints
               });
             }
           }
@@ -291,9 +305,10 @@ export const detectUIObjects = async (
 };
 
 /**
- * Crop image to specific region
+ * Crop image to specific region with contour-based transparency
+ * Uses the contour points to create a transparency mask
  */
-export const cropImage = (imageSrc: string, region: DetectedObject): Promise<string> => {
+export const cropImageWithMask = (imageSrc: string, region: DetectedObject): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -304,11 +319,58 @@ export const cropImage = (imageSrc: string, region: DetectedObject): Promise<str
       canvas.height = region.height;
       const ctx = canvas.getContext('2d')!;
       
-      ctx.drawImage(
-        img,
-        region.x, region.y, region.width, region.height,
-        0, 0, region.width, region.height
-      );
+      // If we have contour points, use them to create a mask
+      if (region.contourPoints && region.contourPoints.length > 0) {
+        // Create a temporary canvas for the mask
+        const maskCanvas = document.createElement('canvas');
+        maskCanvas.width = region.width;
+        maskCanvas.height = region.height;
+        const maskCtx = maskCanvas.getContext('2d')!;
+        
+        // Draw the mask path
+        maskCtx.beginPath();
+        let first = true;
+        for (const pt of region.contourPoints) {
+          const x = pt.x - region.x;
+          const y = pt.y - region.y;
+          if (first) {
+            maskCtx.moveTo(x, y);
+            first = false;
+          } else {
+            maskCtx.lineTo(x, y);
+          }
+        }
+        maskCtx.closePath();
+        
+        // Fill the mask (white = visible, black = transparent)
+        maskCtx.fillStyle = 'white';
+        maskCtx.fill();
+        
+        // Add some padding around the contour to capture shadows/glows
+        // This creates a softer edge
+        maskCtx.strokeStyle = 'white';
+        maskCtx.lineWidth = 4;
+        maskCtx.stroke();
+        
+        // Draw the image
+        ctx.drawImage(
+          img,
+          region.x, region.y, region.width, region.height,
+          0, 0, region.width, region.height
+        );
+        
+        // Apply the mask using composite operation
+        ctx.globalCompositeOperation = 'destination-in';
+        ctx.drawImage(maskCanvas, 0, 0);
+        ctx.globalCompositeOperation = 'source-over';
+      } else {
+        // No contour points, just do a regular crop
+        ctx.drawImage(
+          img,
+          region.x, region.y, region.width, region.height,
+          0, 0, region.width, region.height
+        );
+      }
       
       resolve(canvas.toDataURL('image/png'));
     };
@@ -319,4 +381,12 @@ export const cropImage = (imageSrc: string, region: DetectedObject): Promise<str
     
     img.src = imageSrc;
   });
+};
+
+/**
+ * Crop image to specific region (simple rectangular crop)
+ * Kept for backward compatibility
+ */
+export const cropImage = (imageSrc: string, region: DetectedObject): Promise<string> => {
+  return cropImageWithMask(imageSrc, region);
 };
