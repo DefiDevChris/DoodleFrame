@@ -1,7 +1,7 @@
 import React from 'react';
 import { COLORS, STROKE_WIDTHS } from '../constants';
 import { cn } from '../utils';
-import { Lock, Unlock, Scissors, Copy, Grid3X3, Magnet, Group, Ungroup, FolderOpen } from 'lucide-react';
+import { Lock, Unlock, Scissors, Copy, Grid3X3, Magnet, Group, Ungroup, FolderOpen, Scan } from 'lucide-react';
 import { ShapeObject } from '../types';
 
 interface PropertiesPanelProps {
@@ -30,6 +30,10 @@ interface PropertiesPanelProps {
   canUngroup?: boolean;
   onGroup?: () => void;
   onUngroup?: () => void;
+  // Detection-related props
+  detectionSensitivity?: number;
+  setDetectionSensitivity?: (sensitivity: number) => void;
+  canDetectObjects?: boolean;
 }
 
 export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
@@ -56,7 +60,10 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   canGroup = false,
   canUngroup = false,
   onGroup,
-  onUngroup
+  onUngroup,
+  detectionSensitivity = 65,
+  setDetectionSensitivity,
+  canDetectObjects = false
 }) => {
   // Hide if tool is select/pan/cut AND we don't have a selection. 
   // EXCEPTION: If tool is CUT, we always want to show the mode toggle even without selection.
@@ -297,6 +304,35 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           </select>
         )}
       </div>
+
+      {/* Object Detection Sensitivity */}
+      {canDetectObjects && setDetectionSensitivity && (
+        <div className="flex flex-col gap-2 p-3 border-t border-gray-200">
+          <div className="flex items-center gap-2">
+            <Scan size={16} className="text-purple-600" />
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Detection</span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-gray-600 font-medium">
+              Sensitivity: {detectionSensitivity}%
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={detectionSensitivity}
+              onChange={(e) => setDetectionSensitivity(Number(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600 hover:accent-purple-700"
+              title="Adjust object detection sensitivity"
+            />
+            <div className="flex justify-between text-[10px] text-gray-400">
+              <span>Less sensitive</span>
+              <span>More sensitive</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

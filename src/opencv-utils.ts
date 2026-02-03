@@ -127,8 +127,13 @@ const sampleBackgroundColor = (ctx: CanvasRenderingContext2D, width: number, hei
 
 /**
  * UI object detection using basic OpenCV.js functions
+ * @param imageSrc - Image source URL
+ * @param sensitivity - Detection sensitivity (0-100, default 50)
  */
-export const detectUIObjects = async (imageSrc: string): Promise<DetectionResult> => {
+export const detectUIObjects = async (
+  imageSrc: string,
+  sensitivity: number = 50
+): Promise<DetectionResult> => {
   try {
     await waitForOpenCV(10000);
   } catch (e) {
@@ -176,13 +181,18 @@ export const detectUIObjects = async (imageSrc: string): Promise<DetectionResult
         mats.push(blurred);
         cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
 
-        // Step 3: Edge detection with lower thresholds for dark themes
-        cv.Canny(blurred, edges, 15, 60);
+        // Step 3: Edge detection - adjust thresholds based on sensitivity
+        // Higher sensitivity = lower thresholds = more edges detected
+        const lowThreshold = Math.max(5, 30 - (sensitivity * 0.3));
+        const highThreshold = Math.max(20, 100 - (sensitivity * 0.8));
+        cv.Canny(blurred, edges, lowThreshold, highThreshold);
 
         // Step 4: Dilate to connect edges
-        const kernel = cv.Mat.ones(9, 9, cv.CV_8U);
+        const kernelSize = Math.max(3, 11 - Math.floor(sensitivity * 0.04));
+        const kernel = cv.Mat.ones(kernelSize, kernelSize, cv.CV_8U);
         mats.push(kernel);
-        cv.dilate(edges, dilated, kernel, new cv.Point(-1, -1), 5);
+        const iterations = Math.max(2, 7 - Math.floor(sensitivity * 0.05));
+        cv.dilate(edges, dilated, kernel, new cv.Point(-1, -1), iterations);
 
         // Step 5: Find contours
         const contours = new cv.MatVector();
@@ -196,17 +206,22 @@ export const detectUIObjects = async (imageSrc: string): Promise<DetectionResult
         const detectedObjects: DetectedObject[] = [];
         const imgArea = img.width * img.height;
 
+        // Adjust thresholds based on sensitivity
+        const minArea = Math.max(50, 300 - (sensitivity * 3));
+        const minSize = Math.max(5, 15 - Math.floor(sensitivity * 0.1));
+
         for (let i = 0; i < contours.size(); i++) {
           const contour = contours.get(i);
           const area = cv.contourArea(contour);
 
-          // Very lenient area thresholds
-          if (area > 200 && area < imgArea * 0.95) {
+          // Area thresholds - more sensitive with higher sensitivity value
+          if (area > minArea && area < imgArea * 0.95) {
             const rect = cv.boundingRect(contour);
 
-            // Very lenient aspect ratio
+            // Lenient aspect ratio to catch various UI elements
             const aspectRatio = rect.width / rect.height;
-            if (aspectRatio > 0.01 && aspectRatio < 100 && rect.width > 10 && rect.height > 10) {
+            if (aspectRatio > 0.01 && aspectRatio < 100 &&
+                rect.width > minSize && rect.height > minSize) {
               detectedObjects.push({
                 x: rect.x,
                 y: rect.y,

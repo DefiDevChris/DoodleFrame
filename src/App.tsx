@@ -25,6 +25,7 @@ import {
 import { detectUIObjects, cropImage, isOpenCVReady } from './opencv-utils';
 import { Image as ImageIcon } from 'lucide-react';
 import { handleError } from './error-handler';
+import { DetectionModal } from './components/DetectionModal';
 
 const App: React.FC = () => {
   const [tool, setTool] = useState<ToolType>('pen');
@@ -48,6 +49,11 @@ const App: React.FC = () => {
   const [showGrid, setShowGrid] = useState<boolean>(false);
   const [snapToGrid, setSnapToGrid] = useState<boolean>(false);
   const [gridSize, setGridSize] = useState<number>(20);
+
+  // Detection State
+  const [detectionSensitivity, setDetectionSensitivity] = useState<number>(65);
+  const [showDetectionModal, setShowDetectionModal] = useState<boolean>(false);
+  const [detectedObjectCount, setDetectedObjectCount] = useState<number>(0);
 
   // File State
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
@@ -498,10 +504,10 @@ const App: React.FC = () => {
 
     try {
       const src = (imageShape as ImageShape).src;
-      const result = await detectUIObjects(src);
-      
+      const result = await detectUIObjects(src, detectionSensitivity);
+
       if (result.objects.length === 0) {
-        alert('No objects detected. Try importing a screenshot with clear UI elements (buttons, cards, panels).');
+        alert('No objects detected. Try adjusting the sensitivity slider or importing a screenshot with clearer UI elements.');
         return;
       }
 
@@ -560,9 +566,10 @@ const App: React.FC = () => {
       setShapes(finalShapes);
       addToHistory(finalShapes);
       setSelectedIds(newIds);
-      
-      // Show success message
-      alert(`Detected ${result.objects.length} objects. The background has been filled in so you can move objects without empty space.`);
+
+      // Show success modal
+      setDetectedObjectCount(result.objects.length);
+      setShowDetectionModal(true);
     } catch (error) {
       handleError('Failed to detect objects', error);
     }
@@ -1056,6 +1063,9 @@ const App: React.FC = () => {
         canUngroup={canUngroup}
         onGroup={handleGroup}
         onUngroup={handleUngroup}
+        detectionSensitivity={detectionSensitivity}
+        setDetectionSensitivity={setDetectionSensitivity}
+        canDetectObjects={opencvReady && shapes.some(s => s.tool === 'image' && !(s as ImageShape).isTemplate)}
       />
 
       <div className="flex-1 relative cursor-crosshair">
@@ -1090,6 +1100,13 @@ const App: React.FC = () => {
           updateSmartArrows={updateSmartArrows}
         />
       </div>
+
+      {/* Detection Result Modal */}
+      <DetectionModal
+        isOpen={showDetectionModal}
+        objectCount={detectedObjectCount}
+        onClose={() => setShowDetectionModal(false)}
+      />
     </div>
   );
 };
