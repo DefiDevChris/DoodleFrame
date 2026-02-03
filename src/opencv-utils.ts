@@ -346,10 +346,10 @@ export const cropImageWithMask = (imageSrc: string, region: DetectedObject): Pro
         maskCtx.fillStyle = 'white';
         maskCtx.fill();
         
-        // Add some padding around the contour to capture shadows/glows
-        // This creates a softer edge
+        // Minimal padding (1px) to avoid cutting into the object edges
+        // Users can adjust sensitivity if the detection is too aggressive
         maskCtx.strokeStyle = 'white';
-        maskCtx.lineWidth = 4;
+        maskCtx.lineWidth = 1;
         maskCtx.stroke();
         
         // Draw the image
