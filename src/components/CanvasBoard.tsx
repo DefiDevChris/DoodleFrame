@@ -388,6 +388,14 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   const [selectionRect, setSelectionRect] = useState<{ x: number, y: number, width: number, height: number } | null>(null);
   const startPosRef = useRef<Point | null>(null);
 
+  // Clear selection rect when tool changes away from cut
+  useEffect(() => {
+    if (tool !== 'cut' && selectionRect) {
+      setSelectionRect(null);
+      startPosRef.current = null;
+    }
+  }, [tool, selectionRect]);
+
   const transformerRef = useRef<Konva.Transformer>(null);
   
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -895,6 +903,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
             setShapes(updatedShapes);
             addToHistory(updatedShapes);
         }
+        
+        // Clear selection rect and tool state
         setSelectionRect(null);
         startPosRef.current = null;
         onToolFinished(); 
@@ -1321,16 +1331,19 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
                     />
                 )}
 
-                {selectionRect && (
+                {/* Cut tool selection overlay - only visible when actively cutting */}
+                {selectionRect && tool === 'cut' && (
                     <Rect 
+                        key="cut-selection-overlay"
                         x={selectionRect.x}
                         y={selectionRect.y}
                         width={selectionRect.width}
                         height={selectionRect.height}
-                        stroke={tool === 'cut' ? "#4f46e5" : "#3b82f6"}
+                        stroke="#4f46e5"
                         strokeWidth={1}
                         dash={[5, 5]}
-                        fill={tool === 'cut' ? "rgba(79, 70, 229, 0.1)" : "rgba(59, 130, 246, 0.1)"}
+                        fill="rgba(79, 70, 229, 0.1)"
+                        listening={false}
                     />
                 )}
                 

@@ -81,7 +81,6 @@
     "glob": "^11.0.0",
     "rimraf": "^6.0.0",
     "inflight": "npm:@zkochan/inflight@^2.0.0",
-    "whatwg-encoding": "npm:@exodus/bytes@^1.0.0",
     "boolean": "^4.0.0"
   },
   "build": {

@@ -141,7 +141,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     <>
       {/* Collapsed state - show expand button */}
       {!isVisible && (
-        <div className="fixed top-1/2 -translate-y-1/2 left-[72px] z-40">
+        <div className="fixed top-1/2 -translate-y-1/2 left-[90px] z-40">
           <button
             onClick={() => {
               setIsVisible(true);
@@ -163,7 +163,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       {/* Expanded panel */}
       {isVisible && (
         <div 
-          className="fixed top-1/2 -translate-y-1/2 left-[72px] z-40"
+          className="fixed top-1/2 -translate-y-1/2 left-[90px] z-40"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
