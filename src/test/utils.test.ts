@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   generateId,
   cn,
@@ -15,9 +15,17 @@ import {
   isAncestor,
   calculateBounds,
   getRootShapes,
-  sortShapesByHierarchy
+  sortShapesByHierarchy,
+  getShapeAnchorPoint,
+  calculateBestAnchors,
+  calculateStraightArrowPath,
+  calculateElbowArrowPath,
+  updateConnectedSmartArrows,
+  getConnectedSmartArrows,
+  isNearAnchor,
+  findClosestAnchor
 } from '../utils';
-import { ShapeObject, GroupShape, ImageShape } from '../types';
+import { ShapeObject, GroupShape, ImageShape, CircleShape, ArrowShape, LineShape } from '../types';
 
 describe('Utility Functions', () => {
   describe('generateId', () => {
@@ -302,6 +310,391 @@ describe('Container/Grouping System', () => {
       
       expect(sorted[0].id).toBe('parent');
       expect(sorted[1].id).toBe('child');
+    });
+  });
+});
+
+describe('Download Utility', () => {
+  let mockLink: any;
+
+  beforeEach(() => {
+    mockLink = {
+      download: '',
+      href: '',
+      click: vi.fn()
+    };
+    vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
+    vi.spyOn(document.body, 'appendChild').mockReturnValue(mockLink as any);
+    vi.spyOn(document.body, 'removeChild').mockReturnValue(mockLink as any);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should create download link and trigger download', () => {
+    downloadURI('data:image/png;base64,test', 'test-image.png');
+    
+    expect(document.createElement).toHaveBeenCalledWith('a');
+    expect(mockLink.download).toBe('test-image.png');
+    expect(mockLink.href).toBe('data:image/png;base64,test');
+    expect(mockLink.click).toHaveBeenCalled();
+    expect(document.body.appendChild).toHaveBeenCalled();
+    expect(document.body.removeChild).toHaveBeenCalled();
+  });
+});
+
+describe('Smart Arrow Utilities', () => {
+  const createRect = (id: string, x: number, y: number, width = 100, height = 100): ShapeObject => ({
+    id,
+    tool: 'rect',
+    x,
+    y,
+    width,
+    height,
+    rotation: 0,
+    stroke: '#000',
+    strokeWidth: 2,
+    fill: 'transparent'
+  });
+
+  const createCircle = (id: string, x: number, y: number, radius = 50): CircleShape => ({
+    id,
+    tool: 'circle',
+    x,
+    y,
+    radius,
+    rotation: 0,
+    stroke: '#000',
+    strokeWidth: 2
+  });
+
+  const createSmartArrow = (id: string, fromId: string, toId: string, points: number[]): ShapeObject => ({
+    id,
+    tool: 'smart-arrow',
+    x: 0,
+    y: 0,
+    rotation: 0,
+    stroke: '#000',
+    strokeWidth: 2,
+    fromShapeId: fromId,
+    toShapeId: toId,
+    fromAnchor: 'center',
+    toAnchor: 'center',
+    points,
+    style: 'straight'
+  });
+
+  describe('getShapeAnchorPoint', () => {
+    it('should return center for rect at center anchor', () => {
+      const rect = createRect('rect1', 100, 100);
+      const shapes: ShapeObject[] = [rect];
+      
+      const result = getShapeAnchorPoint(rect, shapes, 'center');
+      expect(result).toEqual({ x: 150, y: 150 });
+    });
+
+    it('should return top anchor for rect', () => {
+      const rect = createRect('rect1', 100, 100);
+      const shapes: ShapeObject[] = [rect];
+      
+      const result = getShapeAnchorPoint(rect, shapes, 'top');
+      expect(result).toEqual({ x: 150, y: 100 });
+    });
+
+    it('should return bottom anchor for rect', () => {
+      const rect = createRect('rect1', 100, 100);
+      const shapes: ShapeObject[] = [rect];
+      
+      const result = getShapeAnchorPoint(rect, shapes, 'bottom');
+      expect(result).toEqual({ x: 150, y: 200 });
+    });
+
+    it('should return left anchor for rect', () => {
+      const rect = createRect('rect1', 100, 100);
+      const shapes: ShapeObject[] = [rect];
+      
+      const result = getShapeAnchorPoint(rect, shapes, 'left');
+      expect(result).toEqual({ x: 100, y: 150 });
+    });
+
+    it('should return right anchor for rect', () => {
+      const rect = createRect('rect1', 100, 100);
+      const shapes: ShapeObject[] = [rect];
+      
+      const result = getShapeAnchorPoint(rect, shapes, 'right');
+      expect(result).toEqual({ x: 200, y: 150 });
+    });
+
+    it('should return correct anchor for circle', () => {
+      const circle = createCircle('circle1', 100, 100, 50);
+      const shapes: ShapeObject[] = [circle];
+      
+      expect(getShapeAnchorPoint(circle, shapes, 'center')).toEqual({ x: 150, y: 150 });
+      expect(getShapeAnchorPoint(circle, shapes, 'top')).toEqual({ x: 150, y: 100 });
+      expect(getShapeAnchorPoint(circle, shapes, 'bottom')).toEqual({ x: 150, y: 200 });
+      expect(getShapeAnchorPoint(circle, shapes, 'left')).toEqual({ x: 100, y: 150 });
+      expect(getShapeAnchorPoint(circle, shapes, 'right')).toEqual({ x: 200, y: 150 });
+    });
+  });
+
+  describe('calculateBestAnchors', () => {
+    it('should return right-to-left anchors when toShape is to the right', () => {
+      const fromShape = createRect('from', 0, 100);
+      const toShape = createRect('to', 300, 100);
+      const shapes: ShapeObject[] = [fromShape, toShape];
+      
+      const result = calculateBestAnchors(fromShape, toShape, shapes);
+      expect(result).toEqual({ from: 'right', to: 'left' });
+    });
+
+    it('should return left-to-right anchors when toShape is to the left', () => {
+      const fromShape = createRect('from', 300, 100);
+      const toShape = createRect('to', 0, 100);
+      const shapes: ShapeObject[] = [fromShape, toShape];
+      
+      const result = calculateBestAnchors(fromShape, toShape, shapes);
+      expect(result).toEqual({ from: 'left', to: 'right' });
+    });
+
+    it('should return bottom-to-top anchors when toShape is below', () => {
+      const fromShape = createRect('from', 100, 0);
+      const toShape = createRect('to', 100, 300);
+      const shapes: ShapeObject[] = [fromShape, toShape];
+      
+      const result = calculateBestAnchors(fromShape, toShape, shapes);
+      expect(result).toEqual({ from: 'bottom', to: 'top' });
+    });
+
+    it('should return top-to-bottom anchors when toShape is above', () => {
+      const fromShape = createRect('from', 100, 300);
+      const toShape = createRect('to', 100, 0);
+      const shapes: ShapeObject[] = [fromShape, toShape];
+      
+      const result = calculateBestAnchors(fromShape, toShape, shapes);
+      expect(result).toEqual({ from: 'top', to: 'bottom' });
+    });
+  });
+
+  describe('calculateStraightArrowPath', () => {
+    it('should return straight line between two anchors', () => {
+      const fromShape = createRect('from', 0, 0);
+      const toShape = createRect('to', 200, 0);
+      const shapes: ShapeObject[] = [fromShape, toShape];
+      
+      const result = calculateStraightArrowPath(fromShape, toShape, shapes, 'center', 'center');
+      expect(result).toEqual([50, 50, 250, 50]);
+    });
+  });
+
+  describe('calculateElbowArrowPath', () => {
+    it('should return horizontal elbow for same horizontal anchors', () => {
+      const fromShape = createRect('from', 0, 0);
+      const toShape = createRect('to', 200, 100);
+      const shapes: ShapeObject[] = [fromShape, toShape];
+      
+      const result = calculateElbowArrowPath(fromShape, toShape, shapes, 'right', 'left');
+      expect(result.length).toBe(8);
+      expect(result[0]).toBe(100);
+      expect(result[1]).toBe(50);
+    });
+
+    it('should return vertical elbow for same vertical anchors', () => {
+      const fromShape = createRect('from', 0, 0);
+      const toShape = createRect('to', 100, 200);
+      const shapes: ShapeObject[] = [fromShape, toShape];
+      
+      const result = calculateElbowArrowPath(fromShape, toShape, shapes, 'bottom', 'top');
+      expect(result.length).toBe(8);
+      expect(result[0]).toBe(50);
+      expect(result[1]).toBe(100);
+    });
+  });
+
+  describe('updateConnectedSmartArrows', () => {
+    it('should update arrow points when connected shape moves', () => {
+      const fromShape = createRect('from', 0, 0);
+      const toShape = createRect('to', 200, 0);
+      const arrow = createSmartArrow('arrow', 'from', 'to', [50, 50, 250, 50]);
+      const shapes: ShapeObject[] = [fromShape, toShape, arrow];
+      
+      const result = updateConnectedSmartArrows('from', shapes);
+      const updatedArrow = result.find(s => s.id === 'arrow') as any;
+      
+      expect(updatedArrow.points).toEqual([50, 50, 250, 50]);
+    });
+
+    it('should remove arrow when connected shape is deleted', () => {
+      const fromShape = createRect('from', 0, 0);
+      const arrow = createSmartArrow('arrow', 'from', 'deleted', [50, 50, 100, 100]);
+      const shapes: ShapeObject[] = [fromShape, arrow];
+      
+      const result = updateConnectedSmartArrows('from', shapes);
+      expect(result.find(s => s.id === 'arrow')).toBeUndefined();
+    });
+  });
+
+  describe('getConnectedSmartArrows', () => {
+    it('should return all arrows connected to a shape', () => {
+      const shape = createRect('shape1', 0, 0);
+      const arrow1 = createSmartArrow('arrow1', 'shape1', 'shape2', [50, 50, 150, 50]);
+      const arrow2 = createSmartArrow('arrow2', 'shape3', 'shape1', [250, 50, 350, 50]);
+      const shapes: ShapeObject[] = [shape, arrow1, arrow2];
+      
+      const result = getConnectedSmartArrows('shape1', shapes);
+      expect(result).toHaveLength(2);
+    });
+  });
+
+  describe('isNearAnchor', () => {
+    it('should return true when point is within threshold', () => {
+      const rect = createRect('rect1', 100, 100);
+      const shapes: ShapeObject[] = [rect];
+      
+      const result = isNearAnchor({ x: 155, y: 155 }, rect, shapes, 'center', 20);
+      expect(result).toBe(true);
+    });
+
+    it('should return false when point is outside threshold', () => {
+      const rect = createRect('rect1', 100, 100);
+      const shapes: ShapeObject[] = [rect];
+      
+      const result = isNearAnchor({ x: 150, y: 150 }, rect, shapes, 'top', 5);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('findClosestAnchor', () => {
+    it('should return the closest anchor', () => {
+      const rect = createRect('rect1', 100, 100);
+      const shapes: ShapeObject[] = [rect];
+      
+      const result = findClosestAnchor({ x: 90, y: 150 }, rect, shapes);
+      expect(result.anchor).toBe('left');
+      expect(result.distance).toBe(10);
+    });
+
+    it('should return center for equal distances', () => {
+      const rect = createRect('rect1', 100, 100);
+      const shapes: ShapeObject[] = [rect];
+      
+      const result = findClosestAnchor({ x: 150, y: 150 }, rect, shapes);
+      expect(result.anchor).toBe('center');
+    });
+  });
+});
+
+describe('CalculateBounds Extended', () => {
+  const createRect = (id: string, x: number, y: number, width = 100, height = 100): ShapeObject => ({
+    id,
+    tool: 'rect',
+    x,
+    y,
+    width,
+    height,
+    rotation: 0,
+    stroke: '#000',
+    strokeWidth: 2,
+    fill: 'transparent'
+  });
+
+  const createCircle = (id: string, x: number, y: number, radius = 50): CircleShape => ({
+    id,
+    tool: 'circle',
+    x,
+    y,
+    radius,
+    rotation: 0,
+    stroke: '#000',
+    strokeWidth: 2
+  });
+
+  const createText = (id: string, x: number, y: number, text = 'Hello', fontSize = 20): ShapeObject => ({
+    id,
+    tool: 'text',
+    x,
+    y,
+    rotation: 0,
+    stroke: '#000',
+    strokeWidth: 1,
+    text,
+    fontSize,
+    fill: '#000'
+  });
+
+  const createPen = (id: string, points: number[]): LineShape => ({
+    id,
+    tool: 'pen',
+    x: 0,
+    y: 0,
+    rotation: 0,
+    stroke: '#000',
+    strokeWidth: 2,
+    points
+  });
+
+  it('should calculate bounds for circle shapes', () => {
+    const circle = createCircle('circle1', 100, 100, 50);
+    const shapes: ShapeObject[] = [circle];
+    
+    const bounds = calculateBounds(['circle1'], shapes);
+    
+    expect(bounds).toEqual({
+      x: 100,
+      y: 100,
+      width: 100,
+      height: 100
+    });
+  });
+
+  it('should calculate bounds for text shapes', () => {
+    const text = createText('text1', 100, 100, 'Hello', 20);
+    const shapes: ShapeObject[] = [text];
+    
+    const bounds = calculateBounds(['text1'], shapes);
+    
+    expect(bounds).toEqual({
+      x: 100,
+      y: 100,
+      width: 60,
+      height: 24
+    });
+  });
+
+  it('should calculate bounds for pen strokes', () => {
+    const pen = createPen('pen1', [0, 0, 50, 100, 100, 50]);
+    const shapes: ShapeObject[] = [pen];
+    
+    const bounds = calculateBounds(['pen1'], shapes);
+    
+    expect(bounds).toEqual({
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100
+    });
+  });
+
+  it('should return null for non-existent shape IDs', () => {
+    const rect = createRect('rect1', 0, 0);
+    const shapes: ShapeObject[] = [rect];
+    
+    const bounds = calculateBounds(['nonexistent'], shapes);
+    expect(bounds).toBeNull();
+  });
+
+  it('should calculate bounds for mixed shape types', () => {
+    const rect = createRect('rect1', 0, 0, 100, 100);
+    const circle = createCircle('circle1', 200, 200, 50);
+    const shapes: ShapeObject[] = [rect, circle];
+    
+    const bounds = calculateBounds(['rect1', 'circle1'], shapes);
+    
+    expect(bounds).toEqual({
+      x: 0,
+      y: 0,
+      width: 300,
+      height: 300
     });
   });
 });
