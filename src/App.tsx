@@ -51,6 +51,9 @@ const App: React.FC = () => {
   const [snapToGrid, setSnapToGrid] = useState<boolean>(false);
   const [gridSize, setGridSize] = useState<number>(20);
 
+  // Auto Switch to Select Tool State
+  const [autoSwitchToSelect, setAutoSwitchToSelect] = useState<boolean>(true);
+
   // Detection State
   const [detectionSensitivity, setDetectionSensitivity] = useState<number>(65);
   const [showDetectionModal, setShowDetectionModal] = useState<boolean>(false);
@@ -676,7 +679,9 @@ const App: React.FC = () => {
   };
   
   const handleToolFinished = () => {
-      setTool('select');
+      if (autoSwitchToSelect) {
+          setTool('select');
+      }
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -1072,6 +1077,8 @@ const App: React.FC = () => {
         detectionSensitivity={detectionSensitivity}
         setDetectionSensitivity={setDetectionSensitivity}
         canDetectObjects={opencvReady && shapes.some(s => s.tool === 'image' && !(s as ImageShape).isTemplate)}
+        autoSwitchToSelect={autoSwitchToSelect}
+        setAutoSwitchToSelect={setAutoSwitchToSelect}
       />
 
       <div className="flex-1 relative cursor-crosshair">
