@@ -59,6 +59,19 @@ const WireframeBackground: React.FC = () => (
   </div>
 );
 
+// Feature icon component with blended background
+const FeatureIcon: React.FC<{ src: string; alt: string; gradient: string }> = ({ src, alt, gradient }) => (
+  <div className={`relative w-16 h-16 mb-3 rounded-xl overflow-hidden ${gradient} p-2`}>
+    {/* Inner gradient overlay for blending */}
+    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent" />
+    <img 
+      src={src} 
+      alt={alt} 
+      className="relative w-full h-full object-contain drop-shadow-sm"
+    />
+  </div>
+);
+
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
@@ -89,20 +102,32 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
             </svg>
           </div>
           <div className="absolute inset-0 bg-black/10" />
-          <div className="relative flex items-center justify-center gap-4">
-            <img
-              src="/doodleframelogo.jpeg"
-              alt="DoodleFrame Logo"
-              className="w-16 h-16 rounded-xl shadow-xl border-2 border-white/20"
-            />
-            <div className="text-left">
-              <h1 className="text-2xl font-black text-white mb-1 tracking-tight">
-                Welcome to DoodleFrame
-              </h1>
-              <p className="text-purple-100 text-sm font-medium">
-                Your free drawing & wireframing tool
-              </p>
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img
+                src="/doodleframelogo.jpeg"
+                alt="DoodleFrame Logo"
+                className="w-16 h-16 rounded-xl shadow-xl border-2 border-white/20"
+              />
+              <div className="text-left">
+                <h1 className="text-2xl font-black text-white mb-1 tracking-tight">
+                  Welcome to DoodleFrame
+                </h1>
+                <p className="text-purple-100 text-sm font-medium">
+                  Your free drawing & wireframing tool
+                </p>
+              </div>
             </div>
+            {/* GitHub Button - Moved to header */}
+            <a
+              href="https://github.com/DefiDevChris/DoodleFrame"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-medium px-4 py-2 rounded-lg transition-colors border border-white/20"
+            >
+              <Github size={18} />
+              <span>View on GitHub</span>
+            </a>
           </div>
         </div>
 
@@ -118,60 +143,51 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
                 Create beautiful wireframes and prototypes in minutes.
               </p>
               {/* Wireframe preview image */}
-              <div className="hidden sm:block w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden border border-purple-100 shadow-sm bg-white/50">
+              <div className="hidden sm:block w-32 h-32 flex-shrink-0 rounded-xl overflow-hidden border border-purple-100 shadow-sm bg-gradient-to-br from-purple-50 to-indigo-50">
                 <img 
                   src="/wireframe-mobile.png" 
                   alt="Mobile wireframe preview" 
-                  className="w-full h-full object-contain p-2 opacity-80 hover:opacity-100 transition-opacity"
+                  className="w-full h-full object-contain p-2 opacity-90 hover:opacity-100 transition-opacity"
                 />
               </div>
             </div>
           </div>
 
-          {/* Features Grid with decorative wireframe */}
-          <div className="relative mb-6">
-            {/* Dashboard wireframe decoration */}
-            <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-40 h-28 opacity-30 hidden md:block pointer-events-none">
-              <img 
-                src="/wireframe-dashboard.png" 
-                alt="" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-            
+          {/* Features Grid */}
+          <div className="mb-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex flex-col items-center text-center p-3 rounded-lg bg-white/60 border border-purple-100/50 backdrop-blur-sm">
-                <img 
+              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-gradient-to-b from-purple-50/80 to-white border border-purple-100/50 backdrop-blur-sm">
+                <FeatureIcon 
                   src="/icons/drawing-tools.png" 
                   alt="Drawing Tools" 
-                  className="w-12 h-12 mb-2 object-contain"
+                  gradient="bg-gradient-to-br from-purple-100 to-purple-50"
                 />
                 <p className="font-semibold text-gray-900 text-sm">Drawing Tools</p>
                 <p className="text-xs text-gray-600">Pen, shapes, arrows</p>
               </div>
-              <div className="flex flex-col items-center text-center p-3 rounded-lg bg-white/60 border border-violet-100/50 backdrop-blur-sm">
-                <img 
+              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-gradient-to-b from-violet-50/80 to-white border border-violet-100/50 backdrop-blur-sm">
+                <FeatureIcon 
                   src="/icons/templates.png" 
                   alt="Templates" 
-                  className="w-12 h-12 mb-2 object-contain"
+                  gradient="bg-gradient-to-br from-violet-100 to-violet-50"
                 />
                 <p className="font-semibold text-gray-900 text-sm">Templates</p>
                 <p className="text-xs text-gray-600">Device frames</p>
               </div>
-              <div className="flex flex-col items-center text-center p-3 rounded-lg bg-white/60 border border-indigo-100/50 backdrop-blur-sm">
-                <img 
+              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-gradient-to-b from-indigo-50/80 to-white border border-indigo-100/50 backdrop-blur-sm">
+                <FeatureIcon 
                   src="/icons/detection.png" 
                   alt="Detection" 
-                  className="w-12 h-12 mb-2 object-contain"
+                  gradient="bg-gradient-to-br from-indigo-100 to-indigo-50"
                 />
                 <p className="font-semibold text-gray-900 text-sm">Detection</p>
                 <p className="text-xs text-gray-600">OpenCV parsing</p>
               </div>
-              <div className="flex flex-col items-center text-center p-3 rounded-lg bg-white/60 border border-purple-100/50 backdrop-blur-sm">
-                <img 
+              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-gradient-to-b from-purple-50/80 to-white border border-purple-100/50 backdrop-blur-sm">
+                <FeatureIcon 
                   src="/icons/export.png" 
                   alt="Export" 
-                  className="w-12 h-12 mb-2 object-contain"
+                  gradient="bg-gradient-to-br from-fuchsia-100 to-purple-50"
                 />
                 <p className="font-semibold text-gray-900 text-sm">Export</p>
                 <p className="text-xs text-gray-600">PNG & projects</p>
@@ -179,9 +195,10 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
             </div>
           </div>
 
-          {/* GitHub Link & Button */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg p-4 relative overflow-hidden">
+          {/* Bottom Section - Get Started & Open Source Info */}
+          <div className="flex items-stretch gap-3">
+            {/* Open Source Info */}
+            <div className="flex-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 relative overflow-hidden">
               {/* Subtle wireframe pattern in dark card */}
               <div className="absolute inset-0 opacity-5">
                 <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -195,14 +212,15 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
                 <Github size={18} className="text-white" />
                 <h3 className="text-base font-bold text-white">Open Source</h3>
               </div>
-              <p className="relative text-gray-300 mb-3 text-xs leading-relaxed">
+              <p className="relative text-gray-300 text-xs leading-relaxed">
                 Free and open source. Contribute or star the repo!
               </p>
+              {/* Mobile GitHub button */}
               <a
                 href="https://github.com/DefiDevChris/DoodleFrame"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-900 font-semibold px-3 py-1.5 rounded-lg transition-colors text-xs"
+                className="sm:hidden mt-3 inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-900 font-semibold px-3 py-1.5 rounded-lg transition-colors text-xs"
               >
                 <Github size={14} />
                 View on GitHub
@@ -212,7 +230,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
             {/* Get Started Button */}
             <button
               onClick={onClose}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-8 px-6 rounded-lg transition-all duration-200 shadow-lg shadow-purple-900/30 relative overflow-hidden group"
+              className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-6 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-purple-900/30 relative overflow-hidden group"
             >
               {/* Button wireframe accent */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity">
