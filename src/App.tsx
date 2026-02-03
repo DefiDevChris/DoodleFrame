@@ -26,6 +26,7 @@ import { detectUIObjects, cropImage, isOpenCVReady } from './opencv-utils';
 import { Image as ImageIcon } from 'lucide-react';
 import { handleError } from './error-handler';
 import { DetectionModal } from './components/DetectionModal';
+import { WelcomeModal } from './components/WelcomeModal';
 
 const App: React.FC = () => {
   const [tool, setTool] = useState<ToolType>('pen');
@@ -54,6 +55,11 @@ const App: React.FC = () => {
   const [detectionSensitivity, setDetectionSensitivity] = useState<number>(65);
   const [showDetectionModal, setShowDetectionModal] = useState<boolean>(false);
   const [detectedObjectCount, setDetectedObjectCount] = useState<number>(0);
+
+  // Welcome Modal State
+  const [showWelcomeModal, setShowWelcomeModal] = useState<boolean>(() => {
+    return !localStorage.getItem('doodleframe-welcome-shown');
+  });
 
   // File State
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
@@ -1106,6 +1112,15 @@ const App: React.FC = () => {
         isOpen={showDetectionModal}
         objectCount={detectedObjectCount}
         onClose={() => setShowDetectionModal(false)}
+      />
+
+      {/* Welcome Modal */}
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => {
+          setShowWelcomeModal(false);
+          localStorage.setItem('doodleframe-welcome-shown', 'true');
+        }}
       />
     </div>
   );
