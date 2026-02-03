@@ -102,7 +102,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
             </svg>
           </div>
           <div className="absolute inset-0 bg-black/10" />
-          <div className="relative flex items-center justify-between">
+          <div className="relative flex items-center justify-center">
             <div className="flex items-center gap-4">
               <img
                 src="/doodleframelogo.jpeg"
@@ -118,16 +118,6 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
                 </p>
               </div>
             </div>
-            {/* GitHub Button - Moved to header */}
-            <a
-              href="https://github.com/DefiDevChris/DoodleFrame"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-medium px-4 py-2 rounded-lg transition-colors border border-white/20"
-            >
-              <Github size={18} />
-              <span>View on GitHub</span>
-            </a>
           </div>
         </div>
 
@@ -195,10 +185,15 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
             </div>
           </div>
 
-          {/* Bottom Section - Get Started & Open Source Info */}
+          {/* Bottom Section - Get Started & View on GitHub */}
           <div className="flex items-stretch gap-3">
-            {/* Open Source Info */}
-            <div className="flex-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 relative overflow-hidden">
+            {/* View on GitHub */}
+            <a
+              href="https://github.com/DefiDevChris/DoodleFrame"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 bg-gradient-to-br from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 rounded-xl p-4 relative overflow-hidden transition-colors group"
+            >
               {/* Subtle wireframe pattern in dark card */}
               <div className="absolute inset-0 opacity-5">
                 <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -210,22 +205,12 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
               </div>
               <div className="relative flex items-center gap-2 mb-2">
                 <Github size={18} className="text-white" />
-                <h3 className="text-base font-bold text-white">Open Source</h3>
+                <h3 className="text-base font-bold text-white">View on GitHub</h3>
               </div>
               <p className="relative text-gray-300 text-xs leading-relaxed">
                 Free and open source. Contribute or star the repo!
               </p>
-              {/* Mobile GitHub button */}
-              <a
-                href="https://github.com/DefiDevChris/DoodleFrame"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="sm:hidden mt-3 inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-900 font-semibold px-3 py-1.5 rounded-lg transition-colors text-xs"
-              >
-                <Github size={14} />
-                View on GitHub
-              </a>
-            </div>
+            </a>
 
             {/* Get Started Button */}
             <button
