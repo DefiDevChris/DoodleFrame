@@ -836,13 +836,18 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     }
 
     if (tool === 'cut' && selectionRect && stageRef.current) {
-        if (selectionRect.width > 5 && selectionRect.height > 5) {
+        // Immediately clear the selection overlay to prevent visual artifacts
+        const currentSelectionRect = selectionRect;
+        setSelectionRect(null);
+        startPosRef.current = null;
+        
+        if (currentSelectionRect.width > 5 && currentSelectionRect.height > 5) {
             const stage = stageRef.current;
             const transform = stage.getAbsoluteTransform();
-            const topLeft = transform.point({ x: selectionRect.x, y: selectionRect.y });
+            const topLeft = transform.point({ x: currentSelectionRect.x, y: currentSelectionRect.y });
             const bottomRight = transform.point({ 
-                x: selectionRect.x + selectionRect.width, 
-                y: selectionRect.y + selectionRect.height 
+                x: currentSelectionRect.x + currentSelectionRect.width, 
+                y: currentSelectionRect.y + currentSelectionRect.height 
             });
             
             const dataURL = stage.toDataURL({
@@ -856,10 +861,10 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
             const newShape: ImageShape = {
                 id: generateId(),
                 tool: 'image',
-                x: selectionRect.x,
-                y: selectionRect.y,
-                width: selectionRect.width,
-                height: selectionRect.height,
+                x: currentSelectionRect.x,
+                y: currentSelectionRect.y,
+                width: currentSelectionRect.width,
+                height: currentSelectionRect.height,
                 rotation: 0,
                 stroke: 'transparent',
                 strokeWidth: 0,
@@ -869,30 +874,32 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
             const shapesToAdd: ShapeObject[] = [newShape];
 
             if (cutMode === 'cut') {
+                // Create mask rectangles with the actual canvas background color instead of white
+                // This ensures seamless blending with the background
                 const bgHole: RectShape = {
                     id: generateId(),
                     tool: 'rect',
-                    x: selectionRect.x,
-                    y: selectionRect.y,
-                    width: selectionRect.width,
-                    height: selectionRect.height,
+                    x: currentSelectionRect.x,
+                    y: currentSelectionRect.y,
+                    width: currentSelectionRect.width,
+                    height: currentSelectionRect.height,
                     rotation: 0,
                     stroke: 'transparent',
                     strokeWidth: 0,
-                    fill: '#ffffff',
+                    fill: '#f9fafb', // bg-gray-50 to match canvas background
                     layer: 'background'
                 };
                 const drawingHole: RectShape = {
                      id: generateId(),
                      tool: 'rect',
-                     x: selectionRect.x,
-                     y: selectionRect.y,
-                     width: selectionRect.width,
-                     height: selectionRect.height,
+                     x: currentSelectionRect.x,
+                     y: currentSelectionRect.y,
+                     width: currentSelectionRect.width,
+                     height: currentSelectionRect.height,
                      rotation: 0,
                      stroke: 'transparent',
                      strokeWidth: 0,
-                     fill: '#ffffff',
+                     fill: '#f9fafb', // bg-gray-50 to match canvas background
                      layer: 'drawing'
                 };
                 shapesToAdd.push(bgHole);
@@ -904,9 +911,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
             addToHistory(updatedShapes);
         }
         
-        // Clear selection rect and tool state
-        setSelectionRect(null);
-        startPosRef.current = null;
+        // Signal tool completion
         onToolFinished(); 
         return;
     }
