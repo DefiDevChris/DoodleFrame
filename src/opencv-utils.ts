@@ -186,8 +186,8 @@ export const detectUIObjects = async (
 
         // Step 3: Edge detection - adjust thresholds based on sensitivity
         // Higher sensitivity = lower thresholds = more edges detected
-        const lowThreshold = Math.max(5, 30 - (sensitivity * 0.3));
-        const highThreshold = Math.max(20, 100 - (sensitivity * 0.8));
+        const lowThreshold = Math.max(1, 30 - (sensitivity * 0.4));
+        const highThreshold = Math.max(10, 100 - (sensitivity * 1.2));
         cv.Canny(blurred, edges, lowThreshold, highThreshold);
 
         // Step 4: Dilate to connect edges
@@ -210,7 +210,7 @@ export const detectUIObjects = async (
         const imgArea = img.width * img.height;
 
         // Adjust thresholds based on sensitivity
-        const minArea = Math.max(50, 300 - (sensitivity * 3));
+        const minArea = Math.max(10, 300 - (sensitivity * 5));
         const minSize = Math.max(5, 15 - Math.floor(sensitivity * 0.1));
 
         for (let i = 0; i < contours.size(); i++) {
@@ -370,9 +370,9 @@ export const cropImageWithMask = (imageSrc: string, region: DetectedObject): Pro
         
         // Minimal padding (1px) to avoid cutting into the object edges
         // Users can adjust sensitivity if the detection is too aggressive
-        maskCtx.strokeStyle = 'white';
-        maskCtx.lineWidth = 1;
-        maskCtx.stroke();
+        // maskCtx.strokeStyle = 'white';
+        // maskCtx.lineWidth = 1;
+        // maskCtx.stroke();
         
         // Draw the image
         ctx.drawImage(
