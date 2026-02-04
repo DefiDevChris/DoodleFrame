@@ -191,10 +191,12 @@ export const detectUIObjects = async (
         cv.Canny(blurred, edges, lowThreshold, highThreshold);
 
         // Step 4: Dilate to connect edges
-        const kernelSize = Math.max(3, 11 - Math.floor(sensitivity * 0.04));
+        // Reduced safety margin for tighter cuts
+        const rawKernelSize = Math.max(3, 5 - Math.floor(sensitivity * 0.02));
+        const kernelSize = rawKernelSize | 1; // Ensure odd kernel size
         const kernel = cv.Mat.ones(kernelSize, kernelSize, cv.CV_8U);
         mats.push(kernel);
-        const iterations = Math.max(2, 7 - Math.floor(sensitivity * 0.05));
+        const iterations = Math.max(1, 3 - Math.floor(sensitivity * 0.02));
         cv.dilate(edges, dilated, kernel, new cv.Point(-1, -1), iterations);
 
         // Step 5: Find contours
