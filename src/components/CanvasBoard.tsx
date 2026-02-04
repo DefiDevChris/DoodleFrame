@@ -854,49 +854,65 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         setSelectionRect(null);
         startPosRef.current = null;
         
-        if (currentSelectionRect.width > 5 && currentSelectionRect.height > 5) {
-            const stage = stageRef.current;
-            const transform = stage.getAbsoluteTransform();
-            const topLeft = transform.point({ x: currentSelectionRect.x, y: currentSelectionRect.y });
-            const bottomRight = transform.point({ 
-                x: currentSelectionRect.x + currentSelectionRect.width, 
-                y: currentSelectionRect.y + currentSelectionRect.height 
-            });
-            
-            const dataURL = stage.toDataURL({
-                x: topLeft.x,
-                y: topLeft.y,
-                width: bottomRight.x - topLeft.x,
-                height: bottomRight.y - topLeft.y,
-                pixelRatio: 2
-            });
+        // Wait for render to clear the dashed line
+        setTimeout(() => {
+            if (currentSelectionRect.width > 5 && currentSelectionRect.height > 5) {
+                const stage = stageRef.current;
+                if (!stage) return;
 
-            const newShape: ImageShape = {
-                id: generateId(),
-                tool: 'image',
-                x: currentSelectionRect.x,
-                y: currentSelectionRect.y,
-                width: currentSelectionRect.width,
-                height: currentSelectionRect.height,
-                rotation: 0,
-                stroke: 'transparent',
-                strokeWidth: 0,
-                src: dataURL
-            };
+                const transform = stage.getAbsoluteTransform();
+                const topLeft = transform.point({ x: currentSelectionRect.x, y: currentSelectionRect.y });
+                const bottomRight = transform.point({
+                    x: currentSelectionRect.x + currentSelectionRect.width,
+                    y: currentSelectionRect.y + currentSelectionRect.height
+                });
 
-            const shapesToAdd: ShapeObject[] = [newShape];
+                const dataURL = stage.toDataURL({
+                    x: topLeft.x,
+                    y: topLeft.y,
+                    width: bottomRight.x - topLeft.x,
+                    height: bottomRight.y - topLeft.y,
+                    pixelRatio: 2
+                });
 
-            // When in 'cut' mode, we don't add hole rectangles - we leave a void/gap
-            // The cutout image captures the content, and the area behind becomes empty
-            // showing the canvas background. This creates a true "cut out" effect.
+                const newShape: ImageShape = {
+                    id: generateId(),
+                    tool: 'image',
+                    x: currentSelectionRect.x,
+                    y: currentSelectionRect.y,
+                    width: currentSelectionRect.width,
+                    height: currentSelectionRect.height,
+                    rotation: 0,
+                    stroke: 'transparent',
+                    strokeWidth: 0,
+                    src: dataURL
+                };
 
-            const updatedShapes = [...shapes, ...shapesToAdd];
-            setShapes(updatedShapes);
-            addToHistory(updatedShapes);
-        }
-        
-        // Signal tool completion
-        onToolFinished(); 
+                // Create eraser shape (hole)
+                const eraserShape: RectShape = {
+                    id: generateId(),
+                    tool: 'rect',
+                    x: currentSelectionRect.x,
+                    y: currentSelectionRect.y,
+                    width: currentSelectionRect.width,
+                    height: currentSelectionRect.height,
+                    rotation: 0,
+                    stroke: 'transparent',
+                    strokeWidth: 0,
+                    fill: 'black',
+                    compositeOperation: 'destination-out'
+                } as any;
+
+                const shapesToAdd: ShapeObject[] = [eraserShape, newShape];
+
+                const updatedShapes = [...shapes, ...shapesToAdd];
+                setShapes(updatedShapes);
+                addToHistory(updatedShapes);
+            }
+
+            // Signal tool completion
+            onToolFinished();
+        }, 0);
         return;
     }
 
