@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
-import { 
-  MousePointer2, 
+import {
+  MousePointer2,
   Hand,
-  Pen, 
-  Highlighter, 
-  ArrowRight, 
+  Pen,
+  Highlighter,
+  ArrowRight,
   ArrowUpRight,
-  Square, 
-  Circle, 
-  Type, 
+  Square,
+  Circle,
+  Type,
   Eraser,
   Undo2,
   Redo2,
   Trash2,
   Download,
   Image as ImageIcon,
-  Scissors,
   LayoutTemplate,
   X,
   ZoomIn,
@@ -86,7 +85,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     { id: 'rect', icon: <Square size={20} />, label: 'Rectangle' },
     { id: 'circle', icon: <Circle size={20} />, label: 'Circle' },
     { id: 'text', icon: <Type size={20} />, label: 'Text' },
-    { id: 'cut', icon: <Scissors size={20} />, label: 'Cut / Slice' },
     { id: 'eraser', icon: <Eraser size={20} />, label: 'Eraser' },
   ];
 

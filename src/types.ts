@@ -1,4 +1,4 @@
-export type ToolType = 'select' | 'pan' | 'pen' | 'marker' | 'arrow' | 'rect' | 'circle' | 'text' | 'eraser' | 'cut' | 'image' | 'group' | 'smart-arrow';
+export type ToolType = 'select' | 'pan' | 'pen' | 'marker' | 'arrow' | 'rect' | 'circle' | 'text' | 'eraser' | 'image' | 'group' | 'smart-arrow';
 
 export type AnchorPosition = 'top' | 'bottom' | 'left' | 'right' | 'center';
 

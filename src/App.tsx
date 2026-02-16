@@ -44,9 +44,6 @@ const App: React.FC = () => {
   const [scale, setScale] = useState<number>(1);
   const [stagePos, setStagePos] = useState<{x: number, y: number}>({ x: 0, y: 0 });
 
-  // Cut Mode State
-  const [cutMode, setCutMode] = useState<'copy' | 'cut'>('copy');
-
   // Grid State
   const [showGrid, setShowGrid] = useState<boolean>(false);
   const [snapToGrid, setSnapToGrid] = useState<boolean>(false);
@@ -1073,8 +1070,6 @@ const App: React.FC = () => {
         isLocked={isSelectionLocked}
         onToggleLock={handleToggleLock}
         hasSelection={selectedIds.length > 0}
-        cutMode={cutMode}
-        setCutMode={setCutMode}
         selectedShape={selectedShape}
         parentName={selectedParentName}
         canGroup={canGroup}
@@ -1105,7 +1100,6 @@ const App: React.FC = () => {
           setScale={setScale}
           stagePos={stagePos}
           setStagePos={setStagePos}
-          cutMode={cutMode}
           onToolFinished={handleToolFinished}
           showGrid={showGrid}
           snapToGrid={snapToGrid}
