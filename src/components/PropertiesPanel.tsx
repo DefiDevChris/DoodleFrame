@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { COLORS, STROKE_WIDTHS } from '../constants';
 import { cn } from '../utils';
-import { 
-  Lock, Unlock, Scissors, Copy, Group, Ungroup, 
+import {
+  Lock, Unlock, Group, Ungroup,
   FolderOpen, Scan, ChevronLeft
 } from 'lucide-react';
 import { ShapeObject } from '../types';
@@ -18,8 +18,6 @@ interface PropertiesPanelProps {
   isLocked: boolean;
   onToggleLock: () => void;
   hasSelection: boolean;
-  cutMode: 'copy' | 'cut';
-  setCutMode: (mode: 'copy' | 'cut') => void;
   // Grouping-related props
   selectedShape?: ShapeObject | null;
   parentName?: string | null;
@@ -46,8 +44,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   isLocked,
   onToggleLock,
   hasSelection,
-  cutMode,
-  setCutMode,
   selectedShape,
   parentName,
   canGroup = false,
@@ -65,12 +61,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   const showTimeRef = useRef<number>(0);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hoverExitTimerRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Show cut controls
-  const showCutControls = tool === 'cut';
-  
+
   // Determine if we should show the panel content
-  const shouldShowContent = showCutControls || hasSelection || (tool !== 'select' && tool !== 'pan');
+  const shouldShowContent = hasSelection || (tool !== 'select' && tool !== 'pan');
 
   // Reset visibility when tool changes or selection changes
   useEffect(() => {
@@ -188,39 +181,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             </div>
 
             <div className="p-4 space-y-4">
-              {/* Cut Tool Mode Toggle */}
-              {showCutControls && (
-                <div className="space-y-2">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Cut Mode</span>
-                  <div className="flex flex-col gap-2">
-                    <button
-                      onClick={() => setCutMode('copy')}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
-                        cutMode === 'copy' 
-                          ? "bg-indigo-50 text-indigo-600 border border-indigo-200" 
-                          : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                      )}
-                    >
-                      <Copy size={14} />
-                      Copy Area
-                    </button>
-                    <button
-                      onClick={() => setCutMode('cut')}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
-                        cutMode === 'cut' 
-                          ? "bg-indigo-50 text-indigo-600 border border-indigo-200" 
-                          : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                      )}
-                    >
-                      <Scissors size={14} />
-                      Cut Out
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {/* Group/Ungroup Controls */}
               {hasSelection && (
                 <div className="space-y-2">
@@ -288,7 +248,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               )}
 
               {/* Standard Drawing Properties */}
-              {!showCutControls && (!hasSelection || !isLocked) && (
+              {(!hasSelection || !isLocked) && (
                 <>
                   {/* Stroke Color - Hide for Eraser */}
                   {tool !== 'eraser' && (

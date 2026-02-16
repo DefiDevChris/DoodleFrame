@@ -46,7 +46,6 @@ interface CanvasBoardProps {
   setScale: (scale: number) => void;
   stagePos: { x: number, y: number };
   setStagePos: (pos: { x: number, y: number }) => void;
-  cutMode: 'copy' | 'cut';
   onToolFinished: () => void;
   showGrid: boolean;
   snapToGrid: boolean;
@@ -378,7 +377,6 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   setScale,
   stagePos,
   setStagePos,
-  cutMode,
   onToolFinished,
   showGrid,
   snapToGrid,
@@ -399,14 +397,6 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
   
   const [selectionRect, setSelectionRect] = useState<{ x: number, y: number, width: number, height: number } | null>(null);
   const startPosRef = useRef<Point | null>(null);
-
-  // Clear selection rect when tool changes away from cut
-  useEffect(() => {
-    if (tool !== 'cut' && selectionRect) {
-      setSelectionRect(null);
-      startPosRef.current = null;
-    }
-  }, [tool, selectionRect]);
 
   const transformerRef = useRef<Konva.Transformer>(null);
   
@@ -566,13 +556,6 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
     setIsDrawing(true);
     startPosRef.current = pos;
 
-    if (tool === 'cut') {
-      setSelectionRect({ x: pos.x, y: pos.y, width: 0, height: 0 });
-      setSelectedIds([]);
-      transformerRef.current?.nodes([]);
-      return;
-    }
-
     const id = generateId();
     setCurrentShapeId(id);
     setSelectedIds([]); 
@@ -717,7 +700,7 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
 
     if (!isDrawing) return;
 
-    if ((tool === 'cut' || tool === 'select') && startPosRef.current) {
+    if (tool === 'select' && startPosRef.current) {
         setSelectionRect({
             x: Math.min(startPosRef.current.x, pos.x),
             y: Math.min(startPosRef.current.y, pos.y),
@@ -845,74 +828,6 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
         setSelectedIds(shapesToSelect.map(s => s.id));
         setSelectionRect(null);
         startPosRef.current = null;
-        return;
-    }
-
-    if (tool === 'cut' && selectionRect && stageRef.current) {
-        // Immediately clear the selection overlay to prevent visual artifacts
-        const currentSelectionRect = selectionRect;
-        setSelectionRect(null);
-        startPosRef.current = null;
-        
-        // Wait for render to clear the dashed line
-        setTimeout(() => {
-            if (currentSelectionRect.width > 5 && currentSelectionRect.height > 5) {
-                const stage = stageRef.current;
-                if (!stage) return;
-
-                const transform = stage.getAbsoluteTransform();
-                const topLeft = transform.point({ x: currentSelectionRect.x, y: currentSelectionRect.y });
-                const bottomRight = transform.point({
-                    x: currentSelectionRect.x + currentSelectionRect.width,
-                    y: currentSelectionRect.y + currentSelectionRect.height
-                });
-
-                const dataURL = stage.toDataURL({
-                    x: topLeft.x,
-                    y: topLeft.y,
-                    width: bottomRight.x - topLeft.x,
-                    height: bottomRight.y - topLeft.y,
-                    pixelRatio: 2
-                });
-
-                const newShape: ImageShape = {
-                    id: generateId(),
-                    tool: 'image',
-                    x: currentSelectionRect.x,
-                    y: currentSelectionRect.y,
-                    width: currentSelectionRect.width,
-                    height: currentSelectionRect.height,
-                    rotation: 0,
-                    stroke: 'transparent',
-                    strokeWidth: 0,
-                    src: dataURL
-                };
-
-                // Create eraser shape (hole)
-                const eraserShape: RectShape = {
-                    id: generateId(),
-                    tool: 'rect',
-                    x: currentSelectionRect.x,
-                    y: currentSelectionRect.y,
-                    width: currentSelectionRect.width,
-                    height: currentSelectionRect.height,
-                    rotation: 0,
-                    stroke: 'transparent',
-                    strokeWidth: 0,
-                    fill: 'black',
-                    compositeOperation: 'destination-out'
-                } as any;
-
-                const shapesToAdd: ShapeObject[] = [eraserShape, newShape];
-
-                const updatedShapes = [...shapes, ...shapesToAdd];
-                setShapes(updatedShapes);
-                addToHistory(updatedShapes);
-            }
-
-            // Signal tool completion
-            onToolFinished();
-        }, 0);
         return;
     }
 
@@ -1313,9 +1228,8 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
             }}
             className={
                 tool === 'pan' ? 'cursor-grab active:cursor-grabbing' :
-                tool === 'text' ? 'cursor-text' : 
-                tool === 'select' ? 'cursor-default' : 
-                tool === 'cut' ? 'cursor-crosshair' :
+                tool === 'text' ? 'cursor-text' :
+                tool === 'select' ? 'cursor-default' :
                 'cursor-crosshair'
             }
             >
@@ -1359,22 +1273,6 @@ export const CanvasBoard: React.FC<CanvasBoardProps> = ({
                     />
                 )}
 
-                {/* Cut tool selection overlay - only visible when actively cutting */}
-                {selectionRect && tool === 'cut' && (
-                    <Rect 
-                        key="cut-selection-overlay"
-                        x={selectionRect.x}
-                        y={selectionRect.y}
-                        width={selectionRect.width}
-                        height={selectionRect.height}
-                        stroke="#4f46e5"
-                        strokeWidth={1}
-                        dash={[5, 5]}
-                        fill="rgba(79, 70, 229, 0.1)"
-                        listening={false}
-                    />
-                )}
-                
                 {selectedIds.length > 0 && (
                     <Transformer
                         ref={transformerRef}
